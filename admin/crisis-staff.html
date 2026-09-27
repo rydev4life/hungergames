@@ -179,17 +179,22 @@
 </div>
 
 <!-- ARENA CONTROL PANEL -->
-<div style="background:var(--dark-1);border-top:2px solid rgba(201,168,76,0.3);padding:10px 16px;flex-shrink:0;">
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-    <div class="pane-title"><i class="ti ti-map"></i> ARENA CONTROL</div>
-    <span style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);letter-spacing:1px;">Click a tribute → click the minimap to move them</span>
-    <select id="arenaSelectTribute" class="aselect" style="width:auto;font-size:11px;padding:3px 8px;margin-left:auto;">
-      <option value="">Select tribute...</option>
-    </select>
-    <a href="arena.html" target="_blank" class="abtn gold" style="padding:4px 12px;font-size:8px;text-decoration:none;"><i class="ti ti-external-link"></i> OPEN ARENA</a>
+<div style="background:var(--dark-1);border-top:2px solid rgba(201,168,76,0.3);padding:12px 16px;flex-shrink:0;display:flex;gap:16px;align-items:flex-start;">
+  <div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div class="pane-title"><i class="ti ti-map"></i> ARENA CONTROL</div>
+      <a href="arena.html" target="_blank" class="abtn gold" style="padding:3px 10px;font-size:8px;text-decoration:none;">OPEN ARENA ↗</a>
+    </div>
+    <canvas id="minimapCanvas" width="80" height="80" style="border:1px solid rgba(201,168,76,0.4);cursor:crosshair;image-rendering:pixelated;width:200px;height:200px;display:block;"></canvas>
+    <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);margin-top:6px;">Click map to move selected tribute</div>
   </div>
-  <canvas id="minimapCanvas" width="400" height="400" style="border:1px solid rgba(201,168,76,0.3);cursor:crosshair;image-rendering:pixelated;height:120px;width:120px;"></canvas>
-  <span style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);margin-left:12px;vertical-align:top;display:inline-block;margin-top:8px;">Selected: <span id="arenaSelectedName" style="color:var(--gold);">none</span></span>
+  <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+    <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--gold);letter-spacing:1px;margin-bottom:4px;">SELECT TRIBUTE</div>
+    <div id="arenaTributeGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;"></div>
+    <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--text-dim);margin-top:4px;">
+      Selected: <span id="arenaSelectedName" style="color:var(--gold);">none</span>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -266,13 +271,21 @@ const TRIBUTE_LIST = [
   {id:'t23',short:'Cecelia',district:12},{id:'t24',short:'Mauve',district:12},
 ];
 
-// Populate dropdown
-const arenaSelect = document.getElementById('arenaSelectTribute');
+// Populate tribute grid buttons
+const grid = document.getElementById('arenaTributeGrid');
 TRIBUTE_LIST.forEach(t => {
-  const opt = document.createElement('option');
-  opt.value = t.id;
-  opt.textContent = `${t.short} (D${t.district})`;
-  arenaSelect.appendChild(opt);
+  const btn = document.createElement('button');
+  btn.id = 'abtn-' + t.id;
+  btn.style.cssText = `background:rgba(0,0,0,0.3);border:1px solid ${DISTRICT_COLORS[t.district]}44;color:${DISTRICT_COLORS[t.district]};font-family:'Cinzel',serif;font-size:7px;padding:4px 3px;cursor:pointer;border-radius:2px;transition:all .15s;letter-spacing:0;`;
+  btn.textContent = t.short;
+  btn.onclick = () => {
+    selectedTribute = t.id;
+    document.getElementById('arenaSelectedName').textContent = t.short + ' (D' + t.district + ')';
+    document.querySelectorAll('[id^="abtn-"]').forEach(b => b.style.background = 'rgba(0,0,0,0.3)');
+    btn.style.background = DISTRICT_COLORS[t.district] + '33';
+    btn.style.borderColor = DISTRICT_COLORS[t.district];
+  };
+  grid.appendChild(btn);
 });
 
 let arenaPositions = {};
@@ -283,13 +296,7 @@ onValue(ref(db, 'arenaPositions'), snap => {
   drawMinimap();
 });
 
-arenaSelect.addEventListener('change', () => {
-  selectedTribute = arenaSelect.value || null;
-  document.getElementById('arenaSelectedName').textContent = selectedTribute
-    ? TRIBUTE_LIST.find(t => t.id === selectedTribute)?.short || 'none'
-    : 'none';
-  drawMinimap();
-});
+
 
 minimapCanvas.addEventListener('click', async (e) => {
   if (!selectedTribute) { showToast('Select a tribute first.', 'danger'); return; }
