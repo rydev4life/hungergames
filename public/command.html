@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Command View — 100th Hunger Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#060606;color:#C9A84C;}
+
+/* ── LAYOUT ─────────────────────────────────────────────── */
+body{display:grid;grid-template-rows:auto 1fr;grid-template-columns:1fr;}
+
+.top-bar{
+  grid-column:1/-1;
+  display:flex;align-items:center;gap:14px;padding:7px 16px;
+  background:#080808;border-bottom:2px solid #C9A84C;flex-shrink:0;
+}
+.top-logo{display:flex;align-items:center;gap:8px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#C9A84C;}
+.stat-group{display:flex;gap:18px;margin-left:auto;}
+.stat{display:flex;flex-direction:column;align-items:center;gap:1px;}
+.stat-num{font-family:'Press Start 2P',monospace;font-size:15px;color:#C9A84C;}
+.stat-num.red{color:#8B1A1A;} .stat-num.blue{color:#3a5a7a;}
+.stat-label{font-family:'Cinzel',serif;font-size:7px;color:#3a2a10;letter-spacing:2px;}
+.live-dot{width:8px;height:8px;background:#8B1A1A;border-radius:50%;animation:blink 1.5s infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.tbtn{background:transparent;border:1px solid #2a1a08;color:#6a4a20;padding:4px 10px;font-family:'Cinzel',serif;font-size:8px;cursor:pointer;letter-spacing:1px;transition:all .2s;}
+.tbtn:hover{border-color:#C9A84C;color:#C9A84C;}
+
+.content{display:grid;grid-template-columns:1fr 380px;grid-template-rows:1fr 220px;height:100%;overflow:hidden;}
+
+/* ── ARENA (left, full height) ──────────────────────────── */
+.arena-col{
+  grid-row:1/3;
+  display:flex;align-items:center;justify-content:center;
+  background:#050505;border-right:1px solid #1a1408;
+  overflow:hidden;position:relative;
+}
+#arenaCanvas{image-rendering:pixelated;image-rendering:crisp-edges;cursor:crosshair;}
+
+/* ── FEED (top-right) ───────────────────────────────────── */
+.feed-col{
+  grid-row:1/2;display:flex;flex-direction:column;overflow:hidden;
+  background:#070707;border-bottom:1px solid #1a1408;
+}
+.panel-hdr{
+  padding:8px 12px;background:#0a0a0a;border-bottom:1px solid #1a1408;
+  font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:#C9A84C;
+  display:flex;align-items:center;gap:8px;flex-shrink:0;
+}
+.panel-hdr .dot{width:5px;height:5px;background:#8B1A1A;border-radius:50%;animation:blink 1.5s infinite;}
+#feedList{flex:1;overflow-y:auto;padding:8px 10px;scrollbar-width:thin;scrollbar-color:#1a1008 transparent;}
+.feed-item{padding:7px 10px;border-left:2px solid #2a1a08;margin-bottom:6px;background:#0a0a0a;animation:fadeIn .4s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.feed-item.crisis{border-left-color:#CC7722;}
+.feed-item.death{border-left-color:#8B1A1A;}
+.feed-item.alliance{border-left-color:#3399CC;}
+.feed-badge{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;color:#C9A84C;opacity:.6;}
+.feed-time{font-family:'Cinzel',serif;font-size:7px;color:#2a1a08;float:right;}
+.feed-text{font-family:'Crimson Pro',serif;font-size:13px;color:#9a8a6a;line-height:1.4;margin-top:3px;}
+
+/* ── TRIBUTE HEALTH (bottom-right) ─────────────────────── */
+.health-col{
+  grid-row:2/3;display:flex;flex-direction:column;overflow:hidden;
+  background:#060606;
+}
+#healthGrid{
+  flex:1;overflow-y:auto;padding:6px 8px;
+  display:grid;grid-template-columns:repeat(2,1fr);gap:4px;
+  align-content:start;
+  scrollbar-width:thin;scrollbar-color:#1a1008 transparent;
+}
+.health-card{
+  background:#0a0a0a;border:1px solid #141008;padding:4px 7px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.health-card.dead{opacity:0.25;filter:grayscale(1);}
+.hc-name{font-family:'Cinzel',serif;font-size:7px;color:#C9A84C;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hc-district{font-family:'Cinzel',serif;font-size:5px;color:#3a2a10;letter-spacing:1px;}
+.hp-bar{height:3px;background:#141008;border-radius:1px;margin-top:2px;}
+.hp-fill{height:100%;border-radius:1px;transition:width .4s;}
+.hp-high{background:#2a7a2a;}
+.hp-mid{background:#8a7a10;}
+.hp-low{background:#8a1a1a;}
+
+/* ── CANNON OVERLAY ─────────────────────────────────────── */
+.cannon-overlay{display:none;position:fixed;inset:0;z-index:999;align-items:center;justify-content:center;background:rgba(0,0,0,.7);}
+.cannon-overlay.visible{display:flex;}
+.cannon-box{background:#0a0a0a;border:1px solid #8B1A1A;padding:30px 40px;text-align:center;max-width:400px;}
+.cannon-title{font-family:'Press Start 2P',monospace;font-size:10px;color:#8B1A1A;letter-spacing:2px;margin-bottom:16px;}
+.cannon-tribute{font-family:'Cinzel',serif;font-size:22px;color:#C9A84C;letter-spacing:3px;}
+.cannon-district{font-family:'Cinzel',serif;font-size:11px;color:#3a2a10;letter-spacing:2px;margin-top:6px;}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="live-dot"></div>
+  <div class="top-logo">
+    <img src="../capitol-seal.webp" alt="" style="width:22px;height:auto;opacity:.8;">
+    THE 100TH HUNGER GAMES · 4TH QUINQUENNIAL QUELL
+  </div>
+  <div class="stat-group">
+    <div class="stat"><div class="stat-num" id="sAlive">24</div><div class="stat-label">ALIVE</div></div>
+    <div class="stat"><div class="stat-num red" id="sDead">0</div><div class="stat-label">FALLEN</div></div>
+    <div class="stat"><div class="stat-num blue" id="sDay">1</div><div class="stat-label">DAY</div></div>
+  </div>
+  <button class="tbtn" onclick="toggleFS()">⛶ FULLSCREEN</button>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+  <!-- ARENA LEFT -->
+  <div class="arena-col">
+    <canvas id="arenaCanvas"></canvas>
+  </div>
+
+  <!-- FEED TOP-RIGHT -->
+  <div class="feed-col">
+    <div class="panel-hdr"><div class="dot"></div>LIVE ARENA FEED<span id="feedDay" style="margin-left:auto;color:#2a1a08;font-size:7px;">DAY 1</span></div>
+    <div id="feedList"><div style="font-family:'Crimson Pro',serif;font-size:13px;color:#2a1a08;padding:20px;text-align:center;font-style:italic;">Awaiting broadcast...</div></div>
+  </div>
+
+  <!-- TRIBUTE HEALTH BOTTOM-RIGHT -->
+  <div class="health-col">
+    <div class="panel-hdr"><div class="dot"></div>TRIBUTE STATUS</div>
+    <div id="healthGrid"></div>
+  </div>
+
+</div>
+
+<!-- CANNON OVERLAY -->
+<div class="cannon-overlay" id="cannonOverlay">
+  <div class="cannon-box">
+    <div class="cannon-title">⚰ TRIBUTE FALLEN</div>
+    <div class="cannon-tribute" id="cannonName">—</div>
+    <div class="cannon-district" id="cannonDistrict">—</div>
+  </div>
+</div>
+
+<!-- ── ARENA CANVAS SCRIPT (no Firebase, runs immediately) ── -->
+<script>
+const canvas=document.getElementById('arenaCanvas');
+const ctx=canvas.getContext('2d');
+const TILE=11,COLS=100,ROWS=100;
+canvas.width=COLS*TILE;canvas.height=ROWS*TILE;
+
+function fitCanvas(){
+  const col=document.querySelector('.arena-col');
+  const mw=col.clientWidth-4,mh=col.clientHeight-4;
+  const scale=Math.min(mw/canvas.width,mh/canvas.height);
+  canvas.style.width=Math.round(canvas.width*scale)+'px';
+  canvas.style.height=Math.round(canvas.height*scale)+'px';
+}
+window.addEventListener('resize',fitCanvas);
+
+const T={GRASS:0,DARK:1,TREE:2,PINE:3,DENSE:4,WATER:5,SHALLOW:6,OCEAN:7,BEACH:8,MOUNTAIN:9,CLIFF:10,ROCK:11,DIRT:12,PATH:13,ROAD:14,CORN:15,MANSION:16,RUIN:17,FACTORY:18,PIER:19,PLATFORM:20,SAND:21,POND:22};
+const PAL={0:['#1a2a12','#182810','#1c2c14','#162410'],1:['#101a0a','#0e1808','#12200c','#0c1606'],2:['#0c1c08','#0a1806','#0e200a','#091604'],3:['#081408','#061206','#0a160a','#051004'],4:['#060e04','#050c03','#071004','#040a02'],5:['#0a1828','#081424','#0c1c2c','#071220'],6:['#102030','#0e1c2c','#122434','#0c1828'],7:['#060e1c','#050c18','#071020','#040a16'],8:['#2e2618','#2a2214','#32281c','#261e10'],9:['#282828','#242424','#2c2c2c','#202020'],10:['#1c1c1c','#181818','#202020','#141414'],11:['#303030','#2c2c2c','#343434','#282828'],12:['#28180a','#241408','#2c1c0c','#201006'],13:['#382818','#342414','#3c2c1c','#302010'],14:['#1e1e1e','#1a1a1a','#222222','#161616'],15:['#C9A84C','#b89030','#d4b456','#a87820'],16:['#2a2018','#261c14','#2e2420','#22181c'],17:['#1e1a14','#1a1610','#221e18','#16120c'],18:['#181818','#141414','#1c1c1c','#101010'],19:['#241a0c','#201608','#281e10','#1c1406'],20:['#3a3010','#34280c','#403814','#2e2808'],21:['#302818','#2c2414','#34301c','#282010'],22:['#0c1c20','#0a1820','#0e2022','#08141c']};
+const map=new Uint8Array(COLS*ROWS);
+const M=(r,c)=>r*COLS+c;
+function noise(r,c,s){const v=Math.sin(r*.31+s)*Math.cos(c*.29+s*1.7)*43758.5453;return v-Math.floor(v);}
+const CX=50,CY=44,PR=17;
+const PLATS=Array.from({length:24},(_,i)=>{const a=(i/24)*Math.PI*2-Math.PI/2;return{r:Math.round(CY+Math.sin(a)*PR),c:Math.round(CX+Math.cos(a)*PR),angle:a};});
+function buildMap(){
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)map[M(r,c)]=noise(r,c,1)<.3?1:0;
+  for(let r=85;r<ROWS;r++)for(let c=0;c<COLS;c++)map[M(r,c)]=T.OCEAN;
+  for(let r=81;r<85;r++)for(let c=0;c<COLS;c++)map[M(r,c)]=T.WATER;
+  for(let r=77;r<81;r++)for(let c=0;c<COLS;c++)map[M(r,c)]=T.BEACH;
+  for(let r=74;r<77;r++)for(let c=0;c<COLS;c++)map[M(r,c)]=noise(r,c,8)>.35?T.SAND:T.BEACH;
+  for(let r=0;r<20;r++)for(let c=0;c<COLS;c++){const d=(20-r)/20;map[M(r,c)]=noise(r,c,2)>.22-d*.12?T.MOUNTAIN:noise(r,c,3)>.3?T.CLIFF:T.ROCK;}
+  for(let r=20;r<28;r++)for(let c=0;c<COLS;c++){if(noise(r,c,4)>.5)map[M(r,c)]=T.CLIFF;else if(noise(r,c,5)>.4)map[M(r,c)]=T.ROCK;else if(noise(r,c,6)>.3)map[M(r,c)]=T.PINE;}
+  for(let r=24;r<74;r++)for(let c=0;c<36;c++){const dr=r-CY,dc=c-CX,dist=Math.sqrt(dr*dr+dc*dc);if(dist<PR+4)continue;map[M(r,c)]=noise(r,c,9)>.08?T.DENSE:T.TREE;}
+  for(let r=28;r<72;r++)for(let c=36;c<COLS;c++){const dr=r-CY,dc=c-CX,dist=Math.sqrt(dr*dr+dc*dc);if(dist<PR+4)continue;if(noise(r,c,10)>.45)map[M(r,c)]=T.TREE;else if(noise(r,c,11)>.55)map[M(r,c)]=T.PINE;}
+  for(let r=60;r<77;r++)for(let c=2;c<26;c++){const dr=(r-68)/7,dc=(c-13)/10,d=dr*dr+dc*dc;if(d<.5)map[M(r,c)]=T.WATER;else if(d<.85)map[M(r,c)]=T.SHALLOW;}
+  for(let r=52;r<62;r++)for(let c=28;c<38;c++){const dr=(r-57)/4,dc=(c-33)/4,d=dr*dr+dc*dc;if(d<.7)map[M(r,c)]=T.POND;}
+  for(let r=28;r<75;r++)for(let c=82;c<88;c++)map[M(r,c)]=T.ROAD;
+  for(let r=72;r<86;r++)for(let c=76;c<80;c++)map[M(r,c)]=T.PIER;
+  for(let r=72;r<75;r++)for(let c=70;c<80;c++)map[M(r,c)]=T.PIER;
+  for(let r=62;r<74;r++)for(let c=68;c<80;c++)map[M(r,c)]=noise(r,c,12)>.3?T.FACTORY:T.DIRT;
+  for(let r=52;r<64;r++)for(let c=80;c<95;c++)map[M(r,c)]=noise(r,c,13)>.25?T.FACTORY:T.DIRT;
+  for(let r=46;r<58;r++)for(let c=4;c<18;c++)map[M(r,c)]=T.MANSION;
+  for(let r=44;r<48;r++)for(let c=6;c<20;c++)map[M(r,c)]=T.RUIN;
+  for(let r=28;r<40;r++)for(let c=62;c<76;c++)map[M(r,c)]=T.RUIN;
+  for(let r=65;r<75;r++)for(let c=44;c<58;c++)map[M(r,c)]=noise(r,c,14)>.4?T.MANSION:T.RUIN;
+  for(let r=50;r<58;r++)for(let c=86;c<96;c++)map[M(r,c)]=T.RUIN;
+  for(let r=CY-10;r<=CY+10;r++)for(let c=CX-10;c<=CX+10;c++){if((r-CY)*(r-CY)+(c-CX)*(c-CX)<=100)map[M(r,c)]=T.DIRT;}
+  [[CY,CX],[CY-1,CX],[CY,CX+1],[CY-1,CX+1],[CY+1,CX],[CY,CX-1],[CY-1,CX-1],[CY+1,CX+1]].forEach(([r,c])=>map[M(r,c)]=T.CORN);
+  [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>{let r=CY,c=CX;for(let i=0;i<42;i++){r=Math.max(0,Math.min(ROWS-1,r+dr));c=Math.max(0,Math.min(COLS-1,c+dc));if(map[M(r,c)]!==T.OCEAN&&map[M(r,c)]!==T.WATER)map[M(r,c)]=T.PATH;}});
+  PLATS.forEach(p=>{for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=p.r+dr,nc=p.c+dc;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS)map[M(nr,nc)]=T.PLATFORM;}});
+}
+const off=document.createElement('canvas');off.width=canvas.width;off.height=canvas.height;
+const octx=off.getContext('2d');
+function bake(){
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const type=map[M(r,c)],pal=PAL[type]||PAL[0],shade=(r*7+c*13)%pal.length,x=c*TILE,y=r*TILE;
+    octx.fillStyle=pal[shade];octx.fillRect(x,y,TILE,TILE);
+    if(type===T.TREE||type===T.DENSE){octx.fillStyle=type===T.DENSE?'#030804':'#050e04';octx.fillRect(x+3,y+7,4,4);octx.fillStyle=type===T.DENSE?'#060e04':'#0a1c08';octx.fillRect(x+1,y+4,9,5);octx.fillStyle=type===T.DENSE?'#071004':'#0c200c';octx.fillRect(x+2,y+1,7,4);}
+    else if(type===T.PINE){octx.fillStyle='#030a06';octx.fillRect(x+4,y+8,2,3);octx.fillStyle='#050e08';octx.fillRect(x+2,y+6,7,4);octx.fillStyle='#071210';octx.fillRect(x+3,y+3,5,4);octx.fillStyle='#091614';octx.fillRect(x+4,y+0,3,4);}
+    else if(type===T.MOUNTAIN||type===T.CLIFF){octx.fillStyle='rgba(0,0,0,0.4)';octx.fillRect(x,y+TILE-4,TILE,4);}
+    else if(type===T.CORN){octx.fillStyle='rgba(201,168,76,0.25)';octx.fillRect(x,y,TILE,TILE);octx.fillStyle='#ffd700';octx.fillRect(x+3,y+3,5,5);}
+    else if(type===T.PLATFORM){octx.fillStyle='rgba(201,168,76,0.18)';octx.fillRect(x,y,TILE,2);octx.fillRect(x,y,2,TILE);}
+    else if(type===T.MANSION||type===T.RUIN){octx.strokeStyle=type===T.MANSION?'rgba(201,168,76,0.1)':'rgba(100,80,60,0.12)';octx.lineWidth=1;octx.strokeRect(x+1,y+1,TILE-2,TILE-2);}
+    else if(type===T.FACTORY){octx.fillStyle='rgba(0,0,0,0.4)';octx.fillRect(x,y+TILE-3,TILE,3);octx.strokeStyle='rgba(60,60,60,0.3)';octx.lineWidth=1;octx.strokeRect(x,y,TILE,TILE);}
+    else if(type===T.PIER){octx.fillStyle='rgba(201,168,76,0.12)';octx.fillRect(x,y+TILE/2,TILE,2);}
+  }
+}
+buildMap();bake();fitCanvas();
+
+const DC={1:'#FFD700',2:'#CC3333',3:'#3399CC',4:'#2ABEAA',5:'#CC7722',6:'#9944CC',7:'#44AA44',8:'#CC44AA',9:'#AAAA22',10:'#CC5533',11:'#44BBAA',12:'#888888'};
+const TDEFS=[{id:'t01',short:'VALERIA',district:1},{id:'t02',short:'VELOURO',district:1},{id:'t03',short:'BRONTES',district:2},{id:'t04',short:'KIYRA',district:2},{id:'t05',short:'SYNRIK',district:3},{id:'t06',short:'ELENA',district:3},{id:'t07',short:'CORVEN',district:4},{id:'t08',short:'TORI',district:4},{id:'t09',short:'VOLTI',district:5},{id:'t10',short:'LYRA',district:5},{id:'t11',short:'AXEL',district:6},{id:'t12',short:'VEESUVI',district:6},{id:'t13',short:'PLUTO',district:7},{id:'t14',short:'MEBANI',district:7},{id:'t15',short:'ODINSOS',district:8},{id:'t16',short:'LAMINA',district:8},{id:'t17',short:'ANAYA',district:9},{id:'t18',short:'CLAUDE',district:9},{id:'t19',short:'MARVIN',district:10},{id:'t20',short:'VANDER',district:10},{id:'t21',short:'CORYO',district:11},{id:'t22',short:'SISOU',district:11},{id:'t23',short:'CECELIA',district:12},{id:'t24',short:'MAUVE',district:12}];
+const CAREERS=[1,2,4];
+const tributes=TDEFS.map((d,i)=>{const p=PLATS[i];return{...d,px:p.c*TILE,py:p.r*TILE,targetPx:p.c*TILE,targetPy:p.r*TILE,angle:p.angle,alive:true,hp:100,phase:'waiting',speed:1+Math.random()*.5,wanderTimer:20+Math.floor(Math.random()*30),isCareer:CAREERS.includes(d.district),platAngle:p.angle,deathAlpha:1};});
+
+window.tributes=tributes;
+window.gameStarted=false;
+window.triggerStart=function(){
+  const CXp=CX*TILE,CYp=CY*TILE;
+  tributes.forEach(t=>{
+    if(t.isCareer){t.targetPx=CXp+(Math.random()-.5)*50;t.targetPy=CYp+(Math.random()-.5)*50;t.phase='charging';t.speed=3.5;setTimeout(()=>{if(t.alive){t.phase='wandering';t.wanderTimer=5;}},3500);}
+    else{const fd=200+Math.random()*130;t.targetPx=Math.max(TILE,Math.min((COLS-2)*TILE,t.px+Math.cos(t.platAngle)*fd));t.targetPy=Math.max(TILE,Math.min((ROWS-2)*TILE,t.py+Math.sin(t.platAngle)*fd));t.phase='fleeing';t.speed=2.4+Math.random();setTimeout(()=>{if(t.alive){t.phase='wandering';t.wanderTimer=5;}},5000);}
+  });
+};
+
+function updateAI(t){
+  if(!t.alive||t.phase==='waiting'||t.phase==='dead'||t.phase==='charging'||t.phase==='fleeing')return;
+  t.wanderTimer--;if(t.wanderTimer>0)return;
+  let nearest=null,nearDist=9999;
+  tributes.forEach(o=>{if(o.id===t.id||!o.alive)return;const dx=o.px-t.px,dy=o.py-t.py,d=Math.sqrt(dx*dx+dy*dy);if(d<nearDist){nearDist=d;nearest=o;}});
+  if(nearest&&nearDist<100){
+    const fight=t.isCareer||(Math.random()<.45);
+    if(fight){t.targetPx=nearest.px+(Math.random()-.5)*16;t.targetPy=nearest.py+(Math.random()-.5)*16;t.speed=1.8+Math.random()*.8;t.wanderTimer=12+Math.floor(Math.random()*18);}
+    else{const ang=Math.atan2(t.py-nearest.py,t.px-nearest.px);const fd=70+Math.random()*60;t.targetPx=Math.max(TILE,Math.min((COLS-2)*TILE,t.px+Math.cos(ang)*fd));t.targetPy=Math.max(TILE,Math.min((ROWS-2)*TILE,t.py+Math.sin(ang)*fd));t.speed=2+Math.random()*.6;t.wanderTimer=16+Math.floor(Math.random()*20);}
+    return;
+  }
+  let nc,nr,tries=0;const range=t.isCareer?6:10;
+  do{nc=Math.max(2,Math.min(COLS-3,Math.round(t.px/TILE)+(Math.random()*range*2-range)));nr=Math.max(2,Math.min(ROWS-3,Math.round(t.py/TILE)+(Math.random()*range*2-range)));tries++;}
+  while((map[M(Math.round(nr),Math.round(nc))]===T.OCEAN||map[M(Math.round(nr),Math.round(nc))]===T.MOUNTAIN||map[M(Math.round(nr),Math.round(nc))]===T.WATER)&&tries<10);
+  t.targetPx=nc*TILE;t.targetPy=nr*TILE;t.speed=.8+Math.random()*.8;t.wanderTimer=25+Math.floor(Math.random()*45);
+}
+function moveT(t){
+  if(!t.alive||t.phase==='waiting'||t.phase==='dead')return;
+  const dx=t.targetPx-t.px,dy=t.targetPy-t.py,dist=Math.sqrt(dx*dx+dy*dy);
+  if(dist<1.5)return;t.px+=dx/dist*t.speed;t.py+=dy/dist*t.speed;t.angle=Math.atan2(dy,dx);
+}
+function drawArrow(t){
+  const px=Math.floor(t.px+TILE/2),py=Math.floor(t.py+TILE/2),color=DC[t.district],waiting=t.phase==='waiting',sz=waiting?6:9;
+  if(!t.alive){if(t.deathAlpha>0){t.deathAlpha=Math.max(0,t.deathAlpha-.01);ctx.save();ctx.globalAlpha=t.deathAlpha;ctx.strokeStyle='#8B1A1A';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px-5,py-5);ctx.lineTo(px+5,py+5);ctx.moveTo(px+5,py-5);ctx.lineTo(px-5,py+5);ctx.stroke();ctx.restore();}return;}
+  ctx.save();ctx.translate(px,py);ctx.rotate(t.angle+Math.PI/2);
+  ctx.shadowColor=color;ctx.shadowBlur=waiting?3:8;
+  ctx.beginPath();ctx.moveTo(0,-sz);ctx.lineTo(sz*.75,sz*.65);ctx.lineTo(sz*.25,sz*.3);ctx.lineTo(sz*.25,sz*1.05);ctx.lineTo(-sz*.25,sz*1.05);ctx.lineTo(-sz*.25,sz*.3);ctx.lineTo(-sz*.75,sz*.65);ctx.closePath();
+  ctx.globalAlpha=waiting?.45:.9;ctx.fillStyle=color;ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineWidth=.6;ctx.stroke();
+  ctx.shadowBlur=0;ctx.restore();
+}
+function drawAnimated(){
+  const now=Date.now(),wave=Math.floor(now/500);
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const type=map[M(r,c)];if(type!==T.WATER&&type!==T.SHALLOW&&type!==T.OCEAN&&type!==T.CORN&&type!==T.POND)continue;
+    const x=c*TILE,y=r*TILE;
+    if(type===T.WATER||type===T.SHALLOW||type===T.POND){ctx.fillStyle='rgba(10,30,60,.35)';ctx.fillRect(x,y+((wave+c)%4)*3,TILE,1);}
+    else if(type===T.OCEAN){ctx.fillStyle='rgba(6,14,28,.5)';ctx.fillRect(x,y+((wave+c)%3)*4,TILE,2);if(Math.sin(now/2000+r*.1+c*.07)>.94){ctx.fillStyle='rgba(139,26,26,.12)';ctx.fillRect(x,y,TILE,TILE);}}
+    else if(type===T.CORN){const s=Math.sin(now/400+r*.5+c*.5)*.1+.07;ctx.fillStyle=`rgba(201,168,76,${s})`;ctx.fillRect(x,y,TILE,TILE);}
+  }
+  if(!window.gameStarted){const p=Math.sin(now/500)*.1+.14;PLATS.forEach(pl=>{ctx.fillStyle=`rgba(201,168,76,${p})`;ctx.beginPath();ctx.arc(pl.c*TILE+TILE/2,pl.r*TILE+TILE/2,TILE*.85,0,Math.PI*2);ctx.fill();});}
+}
+
+let cannonFlash=0;
+window._triggerCannon=function(){cannonFlash=35;};
+
+let gameTimeCmd=480;
+function drawDayNight(){
+  const t=gameTimeCmd%1440;let col='#000010',al=0;
+  if(t<60)al=.75;else if(t<360)al=.6-t/1400*.4;else if(t<420){col='#1a0800';al=.35;}else if(t<480){col='#120500';al=.15;}else if(t<780)al=0;else if(t<1020){col='#1a0800';al=(t-780)/240*.35;}else if(t<1080){col='#0a0300';al=.45;}else{col='#000010';al=Math.min(.78,(t-1080)/360*.78);}
+  if(al>0){ctx.save();ctx.globalAlpha=al;ctx.fillStyle=col;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();}
+}
+window._setArenaTime=function(t){gameTimeCmd=t;};
+
+function loop(){
+  ctx.drawImage(off,0,0);drawAnimated();drawDayNight();
+  tributes.forEach(t=>{updateAI(t);moveT(t);});
+  [...tributes].sort((a,b)=>a.py-b.py).forEach(t=>drawArrow(t));
+  if(cannonFlash>0){ctx.save();ctx.globalAlpha=cannonFlash/35*.4;ctx.fillStyle='#8B1A1A';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.globalAlpha=cannonFlash/35;ctx.strokeStyle='#CC2222';ctx.lineWidth=10;ctx.strokeRect(0,0,canvas.width,canvas.height);ctx.restore();cannonFlash--;}
+  requestAnimationFrame(loop);
+}
+loop();
+
+window.toggleFS=function(){if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen();};
+</script>
+
+<!-- ── FIREBASE ─────────────────────────────────────────── -->
+<script type="module">
+import{initializeApp,getApps}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import{getDatabase,ref,onValue}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+try{
+const FB={apiKey:"AIzaSyCZpSWAEivu4NAepXVIY2JyeFoBx6mTayA",authDomain:"hunger-games-uns.firebaseapp.com",databaseURL:"https://hunger-games-uns-default-rtdb.firebaseio.com",projectId:"hunger-games-uns",storageBucket:"hunger-games-uns.firebasestorage.app",messagingSenderId:"833806319484",appId:"1:833806319484:web:39b7af0875360e4d4f6ef9"};
+const app=getApps().length?getApps()[0]:initializeApp(FB);
+const db=getDatabase(app);
+const DC={1:'#FFD700',2:'#CC3333',3:'#3399CC',4:'#2ABEAA',5:'#CC7722',6:'#9944CC',7:'#44AA44',8:'#CC44AA',9:'#AAAA22',10:'#CC5533',11:'#44BBAA',12:'#888888'};
+const TNAMES={t01:'Valeria Apollo',t02:'Velouro Leo',t03:'Brontes Ares',t04:'Kiyra Kain',t05:'Synrik Orion',t06:'Elena Atheniapolos',t07:'Corven Tide',t08:'Tori Vegah',t09:'Volti Helios',t10:'Lyra Solenn',t11:'Axel Ode',t12:'Veesuvi Rain',t13:'Plutonus Blu',t14:'Mebanis Cades',t15:'Odinsos Hemingway',t16:'Lamina Calow',t17:'Anaya Trove',t18:'Claude Alainus',t19:'Marvin Narlan',t20:'Vanderwall Moon',t21:'Coryo Chambers',t22:'Sisou Confucias',t23:'Cecelia Kebih',t24:'Mauve Plinth'};
+const TDIST={t01:1,t02:1,t03:2,t04:2,t05:3,t06:3,t07:4,t08:4,t09:5,t10:5,t11:6,t12:6,t13:7,t14:7,t15:8,t16:8,t17:9,t18:9,t19:10,t20:10,t21:11,t22:11,t23:12,t24:12};
+
+// ── BUILD HEALTH GRID ───────────────────────────────────
+const grid=document.getElementById('healthGrid');
+const TSHORT={t01:'VALERIA',t02:'VELOURO',t03:'BRONTES',t04:'KIYRA',t05:'SYNRIK',t06:'ELENA',t07:'CORVEN',t08:'TORI',t09:'VOLTI',t10:'LYRA',t11:'AXEL',t12:'VEESUVI',t13:'PLUTO',t14:'MEBANI',t15:'ODINSOS',t16:'LAMINA',t17:'ANAYA',t18:'CLAUDE',t19:'MARVIN',t20:'VANDER',t21:'CORYO',t22:'SISOU',t23:'CECELIA',t24:'MAUVE'};
+Object.keys(TNAMES).forEach(id=>{
+  const d=document.createElement('div');
+  d.className='health-card'; d.id='hc-'+id;
+  const color=DC[TDIST[id]];
+  d.innerHTML=`<div class="hc-district" style="color:${color}88">D${TDIST[id]}</div>
+    <div class="hc-name" style="color:${color}">${TSHORT[id]}</div>
+    <div class="hp-bar"><div class="hp-fill hp-high" id="hp-${id}" style="width:100%"></div></div>`;
+  grid.appendChild(d);
+});
+
+// ── FIREBASE LISTENERS ──────────────────────────────────
+onValue(ref(db,'gameState'),snap=>{
+  if(!snap.exists())return;
+  if(snap.val().started===true&&!window.gameStarted){window.gameStarted=true;window.triggerStart();}
+});
+
+onValue(ref(db,'arenaPositions'),snap=>{
+  if(!snap.exists())return;
+  Object.entries(snap.val()||{}).forEach(([id,d])=>{
+    const t=window.tributes?.find?.(x=>x.id===id);
+    if(t&&d.targetPx!==undefined){t.targetPx=d.targetPx;t.targetPy=d.targetPy;t.phase='wandering';t.wanderTimer=5;}
+  });
+});
+
+onValue(ref(db,'tributes'),snap=>{
+  if(!snap.exists())return;
+  Object.entries(snap.val()||{}).forEach(([id,val])=>{
+    const t=window.tributes?.find?.(x=>x.id===id);
+    const card=document.getElementById('hc-'+id);
+    const bar=document.getElementById('hp-'+id);
+    if(t){
+      if(val.alive===false&&t.alive){t.alive=false;t.phase='dead';}
+      if(val.hp!==undefined)t.hp=val.hp;
+    }
+    if(card){
+      const hp=val.hp??100;
+      const alive=val.alive!==false;
+      card.className='health-card'+(alive?'':' dead');
+      if(bar){
+        bar.style.width=hp+'%';
+        bar.className='hp-fill '+(hp>60?'hp-high':hp>30?'hp-mid':'hp-low');
+      }
+    }
+  });
+  updateStats();
+});
+
+function updateStats(){
+  const alive=window.tributes?.filter?.(t=>t.alive).length??24;
+  document.getElementById('sAlive').textContent=alive;
+  document.getElementById('sDead').textContent=24-alive;
+}
+
+// ── LIVE FEED ───────────────────────────────────────────
+let feedItems=[];
+onValue(ref(db,'feed'),snap=>{
+  feedItems=snap.exists()?Object.values(snap.val()||{}).filter(x=>x.text?.trim()).sort((a,b)=>(b.ts||0)-(a.ts||0)):[];
+  renderFeed();
+});
+
+function fmt(ts){if(!ts)return'';const d=new Date(ts);return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+
+function renderFeed(){
+  const list=document.getElementById('feedList');
+  list.innerHTML='';
+  if(!feedItems.length){list.innerHTML='<div style="font-family:\'Crimson Pro\',serif;font-size:13px;color:#2a1a08;padding:20px;text-align:center;font-style:italic;">Awaiting broadcast...</div>';return;}
+  feedItems.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='feed-item '+(item.badge||item.type||'event');
+    div.innerHTML=`<span class="feed-badge">${(item.badge||'EVENT').toUpperCase()}</span><span class="feed-time">${item.time||fmt(item.ts)}</span><div class="feed-text">${item.text}</div>`;
+    list.appendChild(div);
+  });
+}
+
+onValue(ref(db,'stats'),snap=>{
+  if(!snap.exists())return;
+  const s=snap.val();
+  if(s.alive!==undefined)document.getElementById('sAlive').textContent=s.alive;
+  if(s.dead!==undefined)document.getElementById('sDead').textContent=s.dead;
+  if(s.day!==undefined){document.getElementById('sDay').textContent=s.day;document.getElementById('feedDay').textContent='DAY '+s.day;}
+});
+
+// ── CANNON ──────────────────────────────────────────────
+let lastCannon=0;
+onValue(ref(db,'cannonEvent'),snap=>{
+  if(!snap.exists())return;
+  const ev=snap.val();
+  if(!ev?.ts||ev.ts<=lastCannon||Date.now()-ev.ts>10000)return;
+  lastCannon=ev.ts;
+  window._triggerCannon?.();
+  const overlay=document.getElementById('cannonOverlay');
+  document.getElementById('cannonName').textContent=ev.tributeName||'A tribute';
+  document.getElementById('cannonDistrict').textContent=ev.tributeDistrict||'';
+  overlay.classList.add('visible');
+  setTimeout(()=>overlay.classList.remove('visible'),5000);
+});
+
+}catch(err){console.error('Firebase error:',err);}
+</script>
+</body>
+</html>

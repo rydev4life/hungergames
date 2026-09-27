@@ -9,848 +9,517 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;height:100%;overflow:hidden;background:#050505;}
 body{display:flex;flex-direction:column;font-family:'Cinzel',serif;color:#C9A84C;}
-
-.top-bar{
-  display:flex;align-items:center;gap:14px;padding:7px 16px;
-  background:#080808;border-bottom:1px solid #1a1408;flex-shrink:0;
-  flex-wrap:wrap;
-}
+.top-bar{display:flex;align-items:center;gap:12px;padding:7px 14px;background:#080808;border-bottom:1px solid #1a1408;flex-shrink:0;flex-wrap:wrap;}
 .top-title{font-family:'Press Start 2P',monospace;font-size:7px;color:#C9A84C;letter-spacing:1px;}
-.stat-group{display:flex;gap:16px;}
+.stat-group{display:flex;gap:14px;}
 .stat{display:flex;flex-direction:column;align-items:center;gap:1px;}
 .stat-num{font-family:'Press Start 2P',monospace;font-size:13px;color:#C9A84C;}
-.stat-num.red{color:#6B1010;}
-.stat-num.blue{color:#3a5a7a;}
+.stat-num.red{color:#6B1010;} .stat-num.blue{color:#3a5a7a;}
 .stat-label{font-family:'Press Start 2P',monospace;font-size:4px;color:#2a1a08;letter-spacing:1px;}
 .live-dot{width:7px;height:7px;background:#6B1010;border-radius:50%;animation:blink 1.5s infinite;flex-shrink:0;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
-
-/* Day/Night controls */
-.time-ctrl{display:flex;align-items:center;gap:8px;margin-left:auto;}
-.time-label{font-family:'Press Start 2P',monospace;font-size:6px;color:#C9A84C;letter-spacing:1px;}
-#timeSlider{
-  -webkit-appearance:none;appearance:none;
-  width:120px;height:4px;background:linear-gradient(90deg,#0a0a30,#C9A84C,#ff8800,#0a0a30);
-  border-radius:2px;cursor:pointer;outline:none;
-}
-#timeSlider::-webkit-slider-thumb{
-  -webkit-appearance:none;width:10px;height:10px;
-  background:#C9A84C;border-radius:50%;cursor:pointer;
-  box-shadow:0 0 6px rgba(201,168,76,0.6);
-}
-.time-disp{font-family:'Press Start 2P',monospace;font-size:6px;color:#C9A84C;min-width:40px;}
-
-.tbtn{
-  background:transparent;border:1px solid #2a1a08;color:#6a4a20;
-  padding:4px 10px;font-family:'Press Start 2P',monospace;font-size:5px;
-  cursor:pointer;letter-spacing:1px;transition:all .2s;white-space:nowrap;text-decoration:none;
-}
+#timeSlider{-webkit-appearance:none;appearance:none;width:110px;height:4px;background:linear-gradient(90deg,#0a0a30,#C9A84C,#ff8800,#0a0a30);border-radius:2px;cursor:pointer;outline:none;}
+#timeSlider::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;background:#C9A84C;border-radius:50%;cursor:pointer;}
+.time-disp{font-family:'Press Start 2P',monospace;font-size:6px;color:#C9A84C;min-width:38px;}
+.tbtn{background:transparent;border:1px solid #2a1a08;color:#6a4a20;padding:4px 10px;font-family:'Press Start 2P',monospace;font-size:5px;cursor:pointer;letter-spacing:1px;transition:all .2s;}
 .tbtn:hover{border-color:#C9A84C;color:#C9A84C;}
-
-/* Main area: canvas + legend */
 .main{flex:1;display:flex;min-height:0;overflow:hidden;}
-
-.arena-wrap{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  overflow:hidden;position:relative;background:#050505;
-}
-#arenaCanvas{
-  image-rendering:pixelated;image-rendering:crisp-edges;
-  cursor:crosshair;display:block;
-}
-
-/* Legend */
-.legend{
-  width:148px;flex-shrink:0;background:#070707;
-  border-left:1px solid #141008;
-  display:flex;flex-direction:column;overflow:hidden;
-}
-.leg-hdr{
-  padding:8px;border-bottom:1px solid #141008;
-  font-family:'Press Start 2P',monospace;font-size:5px;
-  color:#3a2a10;letter-spacing:1px;flex-shrink:0;
-}
-.leg-list{flex:1;overflow-y:auto;padding:6px 6px;scrollbar-width:thin;scrollbar-color:#1a1008 transparent;}
-.leg-item{
-  display:flex;align-items:center;gap:5px;padding:3px 2px;
-  font-family:'Press Start 2P',monospace;font-size:4px;
-  color:#3a2a10;cursor:pointer;transition:color .15s;border-radius:1px;
-}
+.arena-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:#050505;}
+#arenaCanvas{image-rendering:pixelated;image-rendering:crisp-edges;cursor:crosshair;display:block;}
+.legend{width:140px;flex-shrink:0;background:#070707;border-left:1px solid #141008;display:flex;flex-direction:column;overflow:hidden;}
+.leg-hdr{padding:7px;border-bottom:1px solid #141008;font-family:'Press Start 2P',monospace;font-size:5px;color:#3a2a10;letter-spacing:1px;flex-shrink:0;}
+.leg-list{flex:1;overflow-y:auto;padding:5px;scrollbar-width:thin;scrollbar-color:#1a1008 transparent;}
+.leg-item{display:flex;align-items:center;gap:4px;padding:3px 2px;font-family:'Press Start 2P',monospace;font-size:4px;color:#3a2a10;cursor:pointer;border-radius:1px;transition:color .15s;}
 .leg-item:hover{color:#C9A84C;background:rgba(201,168,76,0.05);}
 .leg-item.dead{opacity:0.2;text-decoration:line-through;}
 .leg-item.selected{color:#C9A84C;background:rgba(201,168,76,0.1);}
-.leg-arrow{flex-shrink:0;}
-
-/* Status bar */
-.status-bar{
-  padding:4px 16px;background:#060606;border-top:1px solid #141008;
-  font-family:'Press Start 2P',monospace;font-size:5px;color:#3a2a10;
-  flex-shrink:0;display:flex;gap:20px;align-items:center;
-}
-#arenaStatusMsg{color:#C9A84C;}
+.status-bar{padding:4px 14px;background:#060606;border-top:1px solid #141008;font-family:'Press Start 2P',monospace;font-size:5px;color:#3a2a10;flex-shrink:0;display:flex;gap:16px;}
+#arenaMsg{color:#C9A84C;}
 </style>
 </head>
 <body>
-
 <div class="top-bar">
   <div class="live-dot"></div>
-  <div class="top-title">100TH HUNGER GAMES — LIVE ARENA</div>
+  <div class="top-title">100TH HUNGER GAMES — ARENA</div>
   <div class="stat-group">
     <div class="stat"><div class="stat-num" id="sAlive">24</div><div class="stat-label">ALIVE</div></div>
     <div class="stat"><div class="stat-num red" id="sDead">0</div><div class="stat-label">FALLEN</div></div>
     <div class="stat"><div class="stat-num blue" id="sDay">1</div><div class="stat-label">DAY</div></div>
   </div>
-  <div class="time-ctrl">
-    <div class="time-label">TIME</div>
-    <input type="range" id="timeSlider" min="0" max="1440" value="480" step="1">
-    <div class="time-disp" id="timeDisp">08:00</div>
-    <button class="tbtn" id="autoTimeBtn" onclick="toggleAutoTime()">AUTO ▶</button>
-  </div>
-  <button class="tbtn" onclick="toggleFS()">⛶ FULL</button>
+  <span style="font-family:'Press Start 2P',monospace;font-size:6px;color:#3a2a10;">TIME</span>
+  <input type="range" id="timeSlider" min="0" max="1440" value="480">
+  <div class="time-disp" id="timeDisp">08:00</div>
+  <button class="tbtn" id="autoBtn" onclick="toggleAuto()">AUTO ▶</button>
+  <button class="tbtn" onclick="toggleFS()" style="margin-left:auto;">⛶ FULL</button>
 </div>
-
 <div class="main">
-  <div class="arena-wrap">
-    <canvas id="arenaCanvas"></canvas>
-  </div>
+  <div class="arena-wrap"><canvas id="arenaCanvas"></canvas></div>
   <div class="legend">
-    <div class="leg-hdr">◆ TRIBUTES — CLICK TO SELECT</div>
+    <div class="leg-hdr">◆ CLICK TO SELECT</div>
     <div class="leg-list" id="legList"></div>
   </div>
 </div>
-
 <div class="status-bar">
-  <span id="arenaStatusMsg">Click an arrow on the map to select · Click map to move</span>
-  <span style="margin-left:auto;">◆ CLICK ARROW = SELECT · CLICK MAP = MOVE</span>
+  <span id="arenaMsg">Initialising arena...</span>
+  <span style="margin-left:auto;">CLICK ARROW = SELECT · CLICK MAP = MOVE</span>
 </div>
 
-<script type="module">
-import{initializeApp,getApps}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import{getDatabase,ref,onValue,update,set}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-const FB={apiKey:"AIzaSyCZpSWAEivu4NAepXVIY2JyeFoBx6mTayA",authDomain:"hunger-games-uns.firebaseapp.com",databaseURL:"https://hunger-games-uns-default-rtdb.firebaseio.com",projectId:"hunger-games-uns",storageBucket:"hunger-games-uns.firebasestorage.app",messagingSenderId:"833806319484",appId:"1:833806319484:web:39b7af0875360e4d4f6ef9"};
-const app=getApps().length?getApps()[0]:initializeApp(FB);
-const db=getDatabase(app);
+<!-- NON-MODULE SCRIPT: runs immediately, no Firebase dependency -->
+<script>
+const canvas = document.getElementById('arenaCanvas');
+const ctx = canvas.getContext('2d');
 
-// ── CANVAS ──────────────────────────────────────────────────
-const canvas=document.getElementById('arenaCanvas');
-const ctx=canvas.getContext('2d');
 const TILE=12, COLS=100, ROWS=100;
-canvas.width=COLS*TILE; canvas.height=ROWS*TILE;
+canvas.width  = COLS * TILE;
+canvas.height = ROWS * TILE;
 
+// Resize canvas display to fit viewport
 function fitCanvas(){
-  const wrap=document.querySelector('.arena-wrap');
-  const mw=wrap.clientWidth-8, mh=wrap.clientHeight-8;
-  const scale=Math.min(mw/canvas.width,mh/canvas.height);
-  canvas.style.width=Math.round(canvas.width*scale)+'px';
-  canvas.style.height=Math.round(canvas.height*scale)+'px';
+  const wrap = document.querySelector('.arena-wrap');
+  const mw = wrap.clientWidth - 8;
+  const mh = wrap.clientHeight - 8;
+  const scale = Math.min(mw / canvas.width, mh / canvas.height);
+  canvas.style.width  = Math.round(canvas.width  * scale) + 'px';
+  canvas.style.height = Math.round(canvas.height * scale) + 'px';
 }
-fitCanvas();
-window.addEventListener('resize',fitCanvas);
+window.addEventListener('resize', fitCanvas);
 
-// ── TILE TYPES ─────────────────────────────────────────────
-const T={
-  GRASS:0, DARKGRASS:1,
-  TREE:2, PINETREE:3, DENSEFOREST:4,
-  WATER:5, SHALLOW:6, OCEAN:7, BEACH:8,
-  MOUNTAIN:9, CLIFF:10, ROCK:11,
-  DIRT:12, PATH:13, ROAD:14,
-  CORNUCOPIA:15,
-  MANSION:16, RUIN:17, FACTORY:18, PIER:19,
-  PLATFORM:20, SAND:21, POND:22,
-};
-
-// Dark Capitol-palette
+// ── TILE TYPES ──────────────────────────────────────────────
+const T={GRASS:0,DARK:1,TREE:2,PINE:3,DENSE:4,WATER:5,SHALLOW:6,OCEAN:7,BEACH:8,MOUNTAIN:9,CLIFF:10,ROCK:11,DIRT:12,PATH:13,ROAD:14,CORN:15,MANSION:16,RUIN:17,FACTORY:18,PIER:19,PLATFORM:20,SAND:21,POND:22};
 const PAL={
-  [T.GRASS]:     ['#1a2a12','#182810','#1c2c14','#162410'],
-  [T.DARKGRASS]: ['#101a0a','#0e1808','#12200c','#0c1606'],
-  [T.TREE]:      ['#0c1c08','#0a1806','#0e200a','#091604'],
-  [T.PINETREE]:  ['#081408','#061206','#0a160a','#051004'],
-  [T.DENSEFOREST]:['#060e04','#050c03','#071004','#040a02'],
-  [T.WATER]:     ['#0a1828','#081424','#0c1c2c','#071220'],
-  [T.SHALLOW]:   ['#102030','#0e1c2c','#122434','#0c1828'],
-  [T.OCEAN]:     ['#060e1c','#050c18','#071020','#040a16'],
-  [T.BEACH]:     ['#2e2618','#2a2214','#32281c','#261e10'],
-  [T.MOUNTAIN]:  ['#282828','#242424','#2c2c2c','#202020'],
-  [T.CLIFF]:     ['#1c1c1c','#181818','#202020','#141414'],
-  [T.ROCK]:      ['#303030','#2c2c2c','#343434','#282828'],
-  [T.DIRT]:      ['#28180a','#241408','#2c1c0c','#201006'],
-  [T.PATH]:      ['#382818','#342414','#3c2c1c','#302010'],
-  [T.ROAD]:      ['#1e1e1e','#1a1a1a','#222222','#161616'],
-  [T.CORNUCOPIA]:['#C9A84C','#b89030','#d4b456','#a87820'],
-  [T.MANSION]:   ['#2a2018','#261c14','#2e2420','#22181c'],
-  [T.RUIN]:      ['#1e1a14','#1a1610','#221e18','#16120c'],
-  [T.FACTORY]:   ['#181818','#141414','#1c1c1c','#101010'],
-  [T.PIER]:      ['#241a0c','#201608','#281e10','#1c1406'],
-  [T.PLATFORM]:  ['#3a3010','#34280c','#403814','#2e2808'],
-  [T.SAND]:      ['#302818','#2c2414','#34301c','#282010'],
-  [T.POND]:      ['#0c1c20','#0a1820','#0e2022','#08141c'],
+  0:['#1a2a12','#182810','#1c2c14','#162410'],
+  1:['#101a0a','#0e1808','#12200c','#0c1606'],
+  2:['#0c1c08','#0a1806','#0e200a','#091604'],
+  3:['#081408','#061206','#0a160a','#051004'],
+  4:['#060e04','#050c03','#071004','#040a02'],
+  5:['#0a1828','#081424','#0c1c2c','#071220'],
+  6:['#102030','#0e1c2c','#122434','#0c1828'],
+  7:['#060e1c','#050c18','#071020','#040a16'],
+  8:['#2e2618','#2a2214','#32281c','#261e10'],
+  9:['#282828','#242424','#2c2c2c','#202020'],
+  10:['#1c1c1c','#181818','#202020','#141414'],
+  11:['#303030','#2c2c2c','#343434','#282828'],
+  12:['#28180a','#241408','#2c1c0c','#201006'],
+  13:['#382818','#342414','#3c2c1c','#302010'],
+  14:['#1e1e1e','#1a1a1a','#222222','#161616'],
+  15:['#C9A84C','#b89030','#d4b456','#a87820'],
+  16:['#2a2018','#261c14','#2e2420','#22181c'],
+  17:['#1e1a14','#1a1610','#221e18','#16120c'],
+  18:['#181818','#141414','#1c1c1c','#101010'],
+  19:['#241a0c','#201608','#281e10','#1c1406'],
+  20:['#3a3010','#34280c','#403814','#2e2808'],
+  21:['#302818','#2c2414','#34301c','#282010'],
+  22:['#0c1c20','#0a1820','#0e2022','#08141c'],
 };
 
-const map=new Uint8Array(COLS*ROWS);
-const M=(r,c)=>r*COLS+c;
+const map = new Uint8Array(COLS * ROWS);
+const M = (r,c) => r*COLS+c;
 
-function n(r,c,s=0){let v=Math.sin(r*.31+s)*Math.cos(c*.29+s*1.7)*43758.5;return v-Math.floor(v);}
+function noise(r,c,s){
+  const v = Math.sin(r*.31+s)*Math.cos(c*.29+s*1.7)*43758.5453;
+  return v - Math.floor(v);
+}
 
-// ── MAP BUILDER ─────────────────────────────────────────────
-// Map concept (0,0=top-left):
-// Top:         Mountains
-// Top-left:    Dense forest + hidden mansion
-// Centre:      Cornucopia clearing + paths
-// Left:        Forest + woodland mansion
-// Bottom-left: Lake + pond
-// Bottom:      Beach + ocean
-// Bottom-right: Pier + abandoned factories
-// Right:       Road + gas station ruins
-// Scattered:   Abandoned mansions
-
-const CX=50,CY=45; // cornucopia centre
-
-// Platform ring
-const PR=18;
-const PLATFORMS=Array.from({length:24},(_,i)=>{
-  const ang=(i/24)*Math.PI*2-Math.PI/2;
-  return{r:Math.round(CY+Math.sin(ang)*PR),c:Math.round(CX+Math.cos(ang)*PR),angle:ang};
+// Platform ring — 24 positions
+const CX=50, CY=44, PR=17;
+const PLATS = Array.from({length:24},(_,i)=>{
+  const a = (i/24)*Math.PI*2 - Math.PI/2;
+  return {r:Math.round(CY+Math.sin(a)*PR), c:Math.round(CX+Math.cos(a)*PR), angle:a};
 });
 
 function buildMap(){
   // Base grass
-  for(let i=0;i<COLS*ROWS;i++) map[i]=n(Math.floor(i/COLS),i%COLS,1)<0.35?T.DARKGRASS:T.GRASS;
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++)
+    map[M(r,c)] = noise(r,c,1)<0.3 ? 1 : 0;
 
-  // ── OCEAN (bottom strip) ──
-  for(let r=84;r<ROWS;r++) for(let c=0;c<COLS;c++) map[M(r,c)]=T.OCEAN;
-  // Transition deep to shallow
-  for(let r=80;r<84;r++) for(let c=0;c<COLS;c++) map[M(r,c)]=T.WATER;
-  // Beach
-  for(let r=76;r<80;r++) for(let c=0;c<COLS;c++) map[M(r,c)]=T.BEACH;
-  // Sandy approach
-  for(let r=73;r<76;r++) for(let c=0;c<COLS;c++){
-    if(n(r,c,8)>0.3) map[M(r,c)]=T.SAND;
-    else map[M(r,c)]=T.BEACH;
+  // Ocean bottom
+  for(let r=85;r<ROWS;r++) for(let c=0;c<COLS;c++) map[M(r,c)]=T.OCEAN;
+  for(let r=81;r<85;r++) for(let c=0;c<COLS;c++) map[M(r,c)]=T.WATER;
+  for(let r=77;r<81;r++) for(let c=0;c<COLS;c++) map[M(r,c)]=T.BEACH;
+  for(let r=74;r<77;r++) for(let c=0;c<COLS;c++) map[M(r,c)]=noise(r,c,8)>0.35?T.SAND:T.BEACH;
+
+  // Mountains top
+  for(let r=0;r<20;r++) for(let c=0;c<COLS;c++){
+    const d=(20-r)/20;
+    map[M(r,c)] = noise(r,c,2)>0.22-d*.12 ? T.MOUNTAIN : noise(r,c,3)>0.3 ? T.CLIFF : T.ROCK;
+  }
+  for(let r=20;r<28;r++) for(let c=0;c<COLS;c++){
+    if(noise(r,c,4)>0.5) map[M(r,c)]=T.CLIFF;
+    else if(noise(r,c,5)>0.4) map[M(r,c)]=T.ROCK;
+    else if(noise(r,c,6)>0.3) map[M(r,c)]=T.PINE;
   }
 
-  // ── MOUNTAINS (top) ──
-  for(let r=0;r<18;r++) for(let c=0;c<COLS;c++){
-    const depth=(18-r)/18;
-    if(n(r,c,2)>0.25-depth*0.15) map[M(r,c)]=T.MOUNTAIN;
-    else if(n(r,c,3)>0.3) map[M(r,c)]=T.CLIFF;
-    else map[M(r,c)]=T.ROCK;
-  }
-  // Mountain foothills
-  for(let r=18;r<26;r++) for(let c=0;c<COLS;c++){
-    if(n(r,c,4)>0.5) map[M(r,c)]=T.CLIFF;
-    else if(n(r,c,5)>0.4) map[M(r,c)]=T.ROCK;
-    else if(n(r,c,6)>0.3) map[M(r,c)]=T.PINETREE;
+  // Dense forest left
+  for(let r=24;r<74;r++) for(let c=0;c<36;c++){
+    const dr=r-CY,dc=c-CX, dist=Math.sqrt(dr*dr+dc*dc);
+    if(dist<PR+4) continue;
+    map[M(r,c)] = noise(r,c,9)>0.08 ? T.DENSE : T.TREE;
   }
 
-  // ── HUGE FOREST (left + top-left) ──
-  for(let r=22;r<72;r++) for(let c=0;c<38;c++){
-    const dr=r-CY,dc=c-CX;
-    const distCentre=Math.sqrt(dr*dr+dc*dc);
-    if(distCentre<PR+4) continue;
-    const dn=n(r,c,9);
-    if(dn>0.08) map[M(r,c)]=T.DENSEFOREST;
-    else map[M(r,c)]=T.TREE;
+  // Forest patches rest of map
+  for(let r=28;r<72;r++) for(let c=36;c<COLS;c++){
+    const dr=r-CY,dc=c-CX, dist=Math.sqrt(dr*dr+dc*dc);
+    if(dist<PR+4) continue;
+    if(noise(r,c,10)>0.45) map[M(r,c)]=T.TREE;
+    else if(noise(r,c,11)>0.55) map[M(r,c)]=T.PINE;
   }
 
-  // General forest patches (right side, centre edges)
-  for(let r=26;r<70;r++) for(let c=38;c<COLS;c++){
-    const dr=r-CY,dc=c-CX;
-    const distCentre=Math.sqrt(dr*dr+dc*dc);
-    if(distCentre<PR+4) continue;
-    if(n(r,c,10)>0.45) map[M(r,c)]=T.TREE;
-    else if(n(r,c,11)>0.55) map[M(r,c)]=T.PINETREE;
-  }
-
-  // ── LAKE (bottom-left) ──
-  for(let r=60;r<76;r++) for(let c=2;c<26;c++){
-    const dr=(r-68)/7,dc=(c-13)/10;
-    const d=dr*dr+dc*dc;
+  // Lake bottom-left
+  for(let r=60;r<77;r++) for(let c=2;c<26;c++){
+    const dr=(r-68)/7, dc=(c-13)/10, d=dr*dr+dc*dc;
     if(d<0.5) map[M(r,c)]=T.WATER;
-    else if(d<0.8) map[M(r,c)]=T.SHALLOW;
+    else if(d<0.85) map[M(r,c)]=T.SHALLOW;
   }
-  // Pond (separate smaller body)
-  for(let r=54;r<62;r++) for(let c=28;c<38;c++){
-    const dr=(r-58)/3,dc=(c-33)/4;
-    const d=dr*dr+dc*dc;
+
+  // Pond
+  for(let r=52;r<62;r++) for(let c=28;c<38;c++){
+    const dr=(r-57)/4, dc=(c-33)/4, d=dr*dr+dc*dc;
     if(d<0.7) map[M(r,c)]=T.POND;
   }
 
-  // ── ROAD (right side, vertical) ──
-  for(let r=28;r<74;r++) for(let c=82;c<88;c++){
-    map[M(r,c)]=T.ROAD;
-    if(c===82||c===87){
-      map[M(r,c)]=T.PATH; // sidewalk
-    }
-  }
-  // Road dashes
-  // (visual handled in render)
+  // Road right
+  for(let r=28;r<75;r++) for(let c=82;c<88;c++) map[M(r,c)]=T.ROAD;
 
-  // ── PIER (bottom-right into ocean) ──
+  // Pier
   for(let r=72;r<86;r++) for(let c=76;c<80;c++) map[M(r,c)]=T.PIER;
-  for(let r=72;r<74;r++) for(let c=70;c<80;c++) map[M(r,c)]=T.PIER;
+  for(let r=72;r<75;r++) for(let c=70;c<80;c++) map[M(r,c)]=T.PIER;
 
-  // ── ABANDONED FACTORIES (bottom-right) ──
-  // Factory 1
-  for(let r=62;r<74;r++) for(let c=68;c<80;c++){
-    if(n(r,c,12)>0.3) map[M(r,c)]=T.FACTORY;
-    else map[M(r,c)]=T.DIRT;
-  }
-  // Factory 2
-  for(let r=52;r<64;r++) for(let c=80;c<94;c++){
-    if(n(r,c,13)>0.25) map[M(r,c)]=T.FACTORY;
-    else map[M(r,c)]=T.DIRT;
-  }
+  // Factories bottom-right
+  for(let r=62;r<74;r++) for(let c=68;c<80;c++) map[M(r,c)]=noise(r,c,12)>0.3?T.FACTORY:T.DIRT;
+  for(let r=52;r<64;r++) for(let c=80;c<95;c++) map[M(r,c)]=noise(r,c,13)>0.25?T.FACTORY:T.DIRT;
 
-  // ── WOODLAND MANSION (deep forest left) ──
+  // Woodland mansion (forest left)
   for(let r=46;r<58;r++) for(let c=4;c<18;c++) map[M(r,c)]=T.MANSION;
-  // Ruin wings
   for(let r=44;r<48;r++) for(let c=6;c<20;c++) map[M(r,c)]=T.RUIN;
 
-  // ── ABANDONED MANSIONS (scattered) ──
-  // NE mansion
+  // Scattered ruins/mansions
   for(let r=28;r<40;r++) for(let c=62;c<76;c++) map[M(r,c)]=T.RUIN;
-  // Another near beach
-  for(let r=66;r<74;r++) for(let c=44;c<58;c++){
-    if(n(r,c,14)>0.4) map[M(r,c)]=T.MANSION;
-    else map[M(r,c)]=T.RUIN;
-  }
-  // Gas station ruin (road side)
-  for(let r=50;r<58;r++) for(let c=86;c<96;c++) map[M(r,c)]=T.RUIN;
+  for(let r=65;r<75;r++) for(let c=44;c<58;c++) map[M(r,c)]=noise(r,c,14)>0.4?T.MANSION:T.RUIN;
+  for(let r=50;r<58;r++) for(let c=86;c<96;c++) map[M(r,c)]=T.RUIN; // gas station
 
-  // ── CORNUCOPIA CLEARING ──
+  // Cornucopia clearing
   for(let r=CY-10;r<=CY+10;r++) for(let c=CX-10;c<=CX+10;c++){
-    const dr=r-CY,dc=c-CX;
-    if(dr*dr+dc*dc<=100) map[M(r,c)]=T.DIRT;
+    if((r-CY)*(r-CY)+(c-CX)*(c-CX)<=100) map[M(r,c)]=T.DIRT;
   }
-  // Gold cornucopia centre
-  const golds=[[CY,CX],[CY-1,CX],[CY,CX+1],[CY-1,CX+1],[CY+1,CX],[CY,CX-1],[CY-1,CX-1],[CY+1,CX+1]];
-  golds.forEach(([r,c])=>map[M(r,c)]=T.CORNUCOPIA);
+  [[CY,CX],[CY-1,CX],[CY,CX+1],[CY-1,CX+1],[CY+1,CX],[CY,CX-1],[CY-1,CX-1],[CY+1,CX+1]].forEach(([r,c])=>map[M(r,c)]=T.CORN);
 
-  // ── PATHS from cornucopia ──
+  // Paths
   [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>{
     let r=CY,c=CX;
-    for(let i=0;i<44;i++){
-      r=Math.max(0,Math.min(ROWS-1,r+dr));
-      c=Math.max(0,Math.min(COLS-1,c+dc));
+    for(let i=0;i<42;i++){
+      r=Math.max(0,Math.min(ROWS-1,r+dr)); c=Math.max(0,Math.min(COLS-1,c+dc));
       if(map[M(r,c)]!==T.OCEAN&&map[M(r,c)]!==T.WATER) map[M(r,c)]=T.PATH;
-      if(i%3===0){
-        const nr2=Math.max(0,Math.min(ROWS-1,r+(dc!==0?1:0)));
-        const nc2=Math.max(0,Math.min(COLS-1,c+(dr!==0?1:0)));
-        if(map[M(nr2,nc2)]!==T.OCEAN&&map[M(nr2,nc2)]!==T.WATER) map[M(nr2,nc2)]=T.PATH;
-      }
     }
   });
 
-  // ── PLATFORMS ──
-  PLATFORMS.forEach(p=>{
+  // Platforms
+  PLATS.forEach(p=>{
     for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
       const nr=p.r+dr,nc=p.c+dc;
       if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS) map[M(nr,nc)]=T.PLATFORM;
     }
   });
 }
-buildMap();
 
-// ── BAKE STATIC MAP ─────────────────────────────────────────
-const offscreen=document.createElement('canvas');
-offscreen.width=canvas.width;
-offscreen.height=canvas.height;
-const octx=offscreen.getContext('2d');
+// ── BAKE TO OFFSCREEN CANVAS ─────────────────────────────────
+const off = document.createElement('canvas');
+off.width = canvas.width; off.height = canvas.height;
+const octx = off.getContext('2d');
 
-function drawMapDirect(target){
-  const tc=target||ctx;
+function bake(){
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    const type=map[M(r,c)];
-    const pal=PAL[type]||PAL[T.GRASS];
+    const type=map[M(r,c)], pal=PAL[type]||PAL[0];
     const shade=(r*7+c*13)%pal.length;
-    tc.fillStyle=pal[shade];
-    tc.fillRect(c*TILE,r*TILE,TILE,TILE);
-  }
-}
-
-function bakeMap(){
-  drawMapDirect(octx);
-  // Also bake static decorations on offscreen
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    const type=map[M(r,c)];
     const x=c*TILE,y=r*TILE;
-    if(type===T.TREE||type===T.DENSEFOREST){
-      octx.fillStyle=type===T.DENSEFOREST?'#030804':'#050e04';
-      octx.fillRect(x+4,y+8,4,4);
-      octx.fillStyle=type===T.DENSEFOREST?'#060e04':'#0a1c08';
-      octx.fillRect(x+1,y+4,10,6);
-      octx.fillStyle=type===T.DENSEFOREST?'#08100a':'#0c200c';
-      octx.fillRect(x+2,y+2,8,4);
-      octx.fillStyle=type===T.DENSEFOREST?'#091412':'#0e2410';
-      octx.fillRect(x+4,y+0,4,4);
-    } else if(type===T.PINETREE){
-      octx.fillStyle='#030a06';octx.fillRect(x+5,y+9,2,3);
-      octx.fillStyle='#050e08';octx.fillRect(x+2,y+7,8,4);
-      octx.fillStyle='#071210';octx.fillRect(x+3,y+4,6,4);
-      octx.fillStyle='#091614';octx.fillRect(x+4,y+1,4,4);
-    } else if(type===T.MOUNTAIN){
-      octx.fillStyle='rgba(255,255,255,0.04)';octx.fillRect(x,y,5,2);
-      octx.fillStyle='rgba(0,0,0,0.4)';octx.fillRect(x,y+TILE-4,TILE,4);
-    } else if(type===T.CLIFF){
-      octx.fillStyle='rgba(0,0,0,0.45)';octx.fillRect(x,y+TILE-4,TILE,4);octx.fillRect(x+TILE-3,y,3,TILE);
+    octx.fillStyle=pal[shade]; octx.fillRect(x,y,TILE,TILE);
+    // Static decorations
+    if(type===T.TREE||type===T.DENSE){
+      octx.fillStyle=type===T.DENSE?'#030804':'#050e04'; octx.fillRect(x+4,y+8,4,4);
+      octx.fillStyle=type===T.DENSE?'#060e04':'#0a1c08'; octx.fillRect(x+1,y+4,10,6);
+      octx.fillStyle=type===T.DENSE?'#071004':'#0c200c'; octx.fillRect(x+2,y+2,8,4);
+      octx.fillStyle=type===T.DENSE?'#081208':'#0e2410'; octx.fillRect(x+4,y+0,4,4);
+    } else if(type===T.PINE){
+      octx.fillStyle='#030a06'; octx.fillRect(x+5,y+9,2,3);
+      octx.fillStyle='#050e08'; octx.fillRect(x+2,y+7,8,4);
+      octx.fillStyle='#071210'; octx.fillRect(x+3,y+4,6,4);
+      octx.fillStyle='#091614'; octx.fillRect(x+4,y+1,4,4);
+    } else if(type===T.MOUNTAIN||type===T.CLIFF){
+      octx.fillStyle='rgba(0,0,0,0.4)'; octx.fillRect(x,y+TILE-4,TILE,4);
+      octx.fillStyle='rgba(255,255,255,0.04)'; octx.fillRect(x,y,4,2);
     } else if(type===T.ROAD){
-      octx.fillStyle='rgba(255,255,255,0.04)';octx.fillRect(x,y+TILE/2-1,TILE,2);
+      octx.fillStyle='rgba(255,255,255,0.04)'; octx.fillRect(x,y+TILE/2-1,TILE,2);
     } else if(type===T.MANSION||type===T.RUIN){
-      octx.strokeStyle=type===T.MANSION?'rgba(201,168,76,0.08)':'rgba(100,80,60,0.1)';
-      octx.lineWidth=1;octx.strokeRect(x+1,y+1,TILE-2,TILE-2);
-      if((r+c)%4===0){octx.fillStyle='rgba(201,168,76,0.08)';octx.fillRect(x+3,y+3,4,4);}
-      octx.fillStyle='rgba(0,0,0,0.3)';octx.fillRect(x,y+TILE-2,TILE,2);
+      octx.strokeStyle=type===T.MANSION?'rgba(201,168,76,0.1)':'rgba(100,80,60,0.12)';
+      octx.lineWidth=1; octx.strokeRect(x+1,y+1,TILE-2,TILE-2);
+      if((r+c)%4===0){octx.fillStyle='rgba(201,168,76,0.1)';octx.fillRect(x+3,y+3,4,4);}
     } else if(type===T.FACTORY){
-      octx.fillStyle='rgba(0,0,0,0.4)';octx.fillRect(x,y+TILE-3,TILE,3);
-      if((r*3+c)%5===0){octx.fillStyle='#0c0c0c';octx.fillRect(x+4,y-3,4,5);}
-      octx.strokeStyle='rgba(60,60,60,0.4)';octx.lineWidth=1;octx.strokeRect(x,y,TILE,TILE);
+      octx.fillStyle='rgba(0,0,0,0.4)'; octx.fillRect(x,y+TILE-3,TILE,3);
+      octx.strokeStyle='rgba(60,60,60,0.3)'; octx.lineWidth=1; octx.strokeRect(x,y,TILE,TILE);
     } else if(type===T.PIER){
-      octx.fillStyle='rgba(201,168,76,0.1)';octx.fillRect(x,y+TILE/2,TILE,2);
-      octx.fillStyle='rgba(201,168,76,0.06)';octx.fillRect(x+2,y,2,TILE);octx.fillRect(x+8,y,2,TILE);
-    } else if(type===T.CORNUCOPIA){
-      octx.fillStyle='rgba(201,168,76,0.2)';octx.fillRect(x,y,TILE,TILE);
-      octx.fillStyle='#ffd700';octx.fillRect(x+3,y+3,6,6);
+      octx.fillStyle='rgba(201,168,76,0.12)'; octx.fillRect(x,y+TILE/2,TILE,2);
+      octx.fillStyle='rgba(201,168,76,0.07)'; octx.fillRect(x+2,y,2,TILE); octx.fillRect(x+8,y,2,TILE);
+    } else if(type===T.CORN){
+      octx.fillStyle='rgba(201,168,76,0.25)'; octx.fillRect(x,y,TILE,TILE);
+      octx.fillStyle='#ffd700'; octx.fillRect(x+3,y+3,6,6);
     } else if(type===T.PLATFORM){
-      octx.fillStyle='rgba(201,168,76,0.15)';octx.fillRect(x,y,TILE,2);octx.fillRect(x,y,2,TILE);
+      octx.fillStyle='rgba(201,168,76,0.18)'; octx.fillRect(x,y,TILE,2); octx.fillRect(x,y,2,TILE);
     } else if(type===T.PATH||type===T.DIRT){
-      octx.fillStyle='rgba(201,168,76,0.04)';octx.fillRect(x+1,y+1,3,2);
+      octx.fillStyle='rgba(201,168,76,0.05)'; octx.fillRect(x+1,y+1,3,2);
     }
   }
 }
-bakeMap();
 
-// ── DISTRICT COLOURS ────────────────────────────────────────
+// ── RUN MAP SETUP ────────────────────────────────────────────
+buildMap();
+bake();
+fitCanvas();
+document.getElementById('arenaMsg').textContent = 'Arena ready — connecting to Firebase...';
+
+// ── DISTRICT COLOURS ─────────────────────────────────────────
 const DC={1:'#FFD700',2:'#CC3333',3:'#3399CC',4:'#2ABEAA',5:'#CC7722',6:'#9944CC',7:'#44AA44',8:'#CC44AA',9:'#AAAA22',10:'#CC5533',11:'#44BBAA',12:'#888888'};
 
-// ── TRIBUTES ────────────────────────────────────────────────
+// ── TRIBUTES ─────────────────────────────────────────────────
 const TDEFS=[
-  {id:'t01',name:'Valeria Apollo',short:'VALERIA',district:1},
-  {id:'t02',name:'Velouro Leo',short:'VELOURO',district:1},
-  {id:'t03',name:'Brontes Ares',short:'BRONTES',district:2},
-  {id:'t04',name:'Kiyra Kain',short:'KIYRA',district:2},
-  {id:'t05',name:'Synrik Orion',short:'SYNRIK',district:3},
-  {id:'t06',name:'Elena A.',short:'ELENA',district:3},
-  {id:'t07',name:'Corven Tide',short:'CORVEN',district:4},
-  {id:'t08',name:'Tori Vegah',short:'TORI',district:4},
-  {id:'t09',name:'Volti Helios',short:'VOLTI',district:5},
-  {id:'t10',name:'Lyra Solenn',short:'LYRA',district:5},
-  {id:'t11',name:'Axel Ode',short:'AXEL',district:6},
-  {id:'t12',name:'Veesuvi Rain',short:'VEESUVI',district:6},
-  {id:'t13',name:'Plutonus Blu',short:'PLUTO',district:7},
-  {id:'t14',name:'Mebanis Cades',short:'MEBANI',district:7},
-  {id:'t15',name:'Odinsos H.',short:'ODINSOS',district:8},
-  {id:'t16',name:'Lamina Calow',short:'LAMINA',district:8},
-  {id:'t17',name:'Anaya Trove',short:'ANAYA',district:9},
-  {id:'t18',name:'Claude A.',short:'CLAUDE',district:9},
-  {id:'t19',name:'Marvin Narlan',short:'MARVIN',district:10},
-  {id:'t20',name:'Vanderwall M.',short:'VANDER',district:10},
-  {id:'t21',name:'Coryo Chambers',short:'CORYO',district:11},
-  {id:'t22',name:'Sisou C.',short:'SISOU',district:11},
-  {id:'t23',name:'Cecelia Kebih',short:'CECELIA',district:12},
-  {id:'t24',name:'Mauve Plinth',short:'MAUVE',district:12},
+  {id:'t01',short:'VALERIA', district:1},{id:'t02',short:'VELOURO', district:1},
+  {id:'t03',short:'BRONTES', district:2},{id:'t04',short:'KIYRA',   district:2},
+  {id:'t05',short:'SYNRIK',  district:3},{id:'t06',short:'ELENA',   district:3},
+  {id:'t07',short:'CORVEN',  district:4},{id:'t08',short:'TORI',    district:4},
+  {id:'t09',short:'VOLTI',   district:5},{id:'t10',short:'LYRA',    district:5},
+  {id:'t11',short:'AXEL',    district:6},{id:'t12',short:'VEESUVI', district:6},
+  {id:'t13',short:'PLUTO',   district:7},{id:'t14',short:'MEBANI',  district:7},
+  {id:'t15',short:'ODINSOS', district:8},{id:'t16',short:'LAMINA',  district:8},
+  {id:'t17',short:'ANAYA',   district:9},{id:'t18',short:'CLAUDE',  district:9},
+  {id:'t19',short:'MARVIN',  district:10},{id:'t20',short:'VANDER', district:10},
+  {id:'t21',short:'CORYO',   district:11},{id:'t22',short:'SISOU',  district:11},
+  {id:'t23',short:'CECELIA', district:12},{id:'t24',short:'MAUVE',  district:12},
 ];
 
 const CAREERS=[1,2,4];
-const tributes=TDEFS.map((def,i)=>{
-  const plat=PLATFORMS[i];
-  return{
-    ...def,
-    px:plat.c*TILE, py:plat.r*TILE,
-    targetPx:plat.c*TILE, targetPy:plat.r*TILE,
-    angle:plat.angle,
-    alive:true, hp:100,
-    phase:'waiting',
-    speed:1.2+Math.random()*0.6,
-    wanderTimer:20+Math.floor(Math.random()*40),
-    isCareer:CAREERS.includes(def.district),
-    platformAngle:plat.angle,
-    deathAlpha:1,
-    agitated:false,
-    fleeFrom:null,
-  };
+const tributes = TDEFS.map((d,i)=>{
+  const p=PLATS[i];
+  return{...d, px:p.c*TILE, py:p.r*TILE, targetPx:p.c*TILE, targetPy:p.r*TILE,
+    angle:p.angle, alive:true, hp:100, phase:'waiting',
+    speed:1.0+Math.random()*.5, wanderTimer:20+Math.floor(Math.random()*30),
+    isCareer:CAREERS.includes(d.district), platAngle:p.angle, deathAlpha:1};
 });
 
-// ── GAME STATE ──────────────────────────────────────────────
-let gameStarted=false;
+window.gameStarted = false;
 
-// ── FIREBASE ────────────────────────────────────────────────
-onValue(ref(db,'gameState'),snap=>{
-  if(!snap.exists())return;
-  const started=snap.val().started===true;
-  if(started&&!gameStarted){gameStarted=true;triggerStart();}
-});
-
-onValue(ref(db,'arenaPositions'),snap=>{
-  if(!snap.exists())return;
-  Object.entries(snap.val()||{}).forEach(([id,d])=>{
-    const t=tributes.find(x=>x.id===id);
-    if(t&&d.targetPx!==undefined){
-      t.targetPx=d.targetPx; t.targetPy=d.targetPy;
-      t.phase='wandering'; t.wanderTimer=30;
-    }
-  });
-});
-
-onValue(ref(db,'tributes'),snap=>{
-  if(!snap.exists())return;
-  Object.entries(snap.val()||{}).forEach(([id,val])=>{
-    const t=tributes.find(x=>x.id===id);
-    if(!t)return;
-    if(val.alive===false&&t.alive){t.alive=false;t.phase='dead';}
-    if(val.hp!==undefined) t.hp=val.hp;
-  });
-  buildLegend(); updateStats();
-});
-
-onValue(ref(db,'stats'),snap=>{
-  if(!snap.exists())return;
-  const s=snap.val();
-  if(s.alive!==undefined) document.getElementById('sAlive').textContent=s.alive;
-  if(s.dead!==undefined) document.getElementById('sDead').textContent=s.dead;
-  if(s.day!==undefined) document.getElementById('sDay').textContent=s.day;
-});
-
-let lastCannon=0;
-onValue(ref(db,'cannonEvent'),snap=>{
-  if(!snap.exists())return;
-  const ev=snap.val();
-  if(!ev?.ts||ev.ts<=lastCannon||Date.now()-ev.ts>10000)return;
-  lastCannon=ev.ts;
-  canvasFlash=30;
-});
-
-function updateStats(){
-  const alive=tributes.filter(t=>t.alive).length;
-  document.getElementById('sAlive').textContent=alive;
-  document.getElementById('sDead').textContent=24-alive;
-}
-
-// ── GAME START SEQUENCE ──────────────────────────────────────
-function triggerStart(){
-  const CXp=CX*TILE,CYp=CY*TILE;
+window.triggerStart = function(){
+  const CXp=CX*TILE, CYp=CY*TILE;
   tributes.forEach(t=>{
     if(t.isCareer){
-      t.targetPx=CXp+(Math.random()-0.5)*60;
-      t.targetPy=CYp+(Math.random()-0.5)*60;
+      t.targetPx=CXp+(Math.random()-.5)*50; t.targetPy=CYp+(Math.random()-.5)*50;
       t.phase='charging'; t.speed=3.5;
       setTimeout(()=>{if(t.alive){t.phase='wandering';t.wanderTimer=5;}},3500);
     } else {
-      const ang=t.platformAngle;
-      const dist=200+Math.random()*150;
-      t.targetPx=Math.max(TILE,Math.min((COLS-2)*TILE,t.px+Math.cos(ang)*dist));
-      t.targetPy=Math.max(TILE,Math.min((ROWS-2)*TILE,t.py+Math.sin(ang)*dist));
-      t.phase='fleeing'; t.speed=2.5+Math.random();
+      const fd=200+Math.random()*130;
+      t.targetPx=Math.max(TILE,Math.min((COLS-2)*TILE,t.px+Math.cos(t.platAngle)*fd));
+      t.targetPy=Math.max(TILE,Math.min((ROWS-2)*TILE,t.py+Math.sin(t.platAngle)*fd));
+      t.phase='fleeing'; t.speed=2.4+Math.random();
       setTimeout(()=>{if(t.alive){t.phase='wandering';t.wanderTimer=5;}},5000);
     }
   });
-}
+};
 
-// ── AGGRESSIVE AI ────────────────────────────────────────────
-// Much higher aggression — shorter timers, constant movement
+// ── AI ───────────────────────────────────────────────────────
 function updateAI(t){
-  if(!t.alive||t.phase==='waiting'||t.phase==='dead')return;
-  if(t.phase==='charging'||t.phase==='fleeing') return;
+  if(!t.alive||t.phase==='waiting'||t.phase==='dead'||t.phase==='charging'||t.phase==='fleeing') return;
+  t.wanderTimer--;
+  if(t.wanderTimer>0) return;
 
-  // Every wander tick — look for nearby tributes
-  const FIGHT_RANGE=80;   // pixels — charge at this distance
-  const FLEE_RANGE=120;   // flee if not career and close to career
-  let nearest=null,nearDist=9999;
-
-  tributes.forEach(other=>{
-    if(other.id===t.id||!other.alive)return;
-    const dx=other.px-t.px, dy=other.py-t.py;
-    const d=Math.sqrt(dx*dx+dy*dy);
-    if(d<nearDist){nearDist=d;nearest=other;}
+  // Find nearest alive tribute
+  let nearest=null, nearDist=9999;
+  tributes.forEach(o=>{
+    if(o.id===t.id||!o.alive) return;
+    const dx=o.px-t.px,dy=o.py-t.py,d=Math.sqrt(dx*dx+dy*dy);
+    if(d<nearDist){nearDist=d;nearest=o;}
   });
 
-  t.wanderTimer--;
-  if(t.wanderTimer>0)return;
-
-  if(nearest&&nearDist<FIGHT_RANGE){
-    // Careers attack; others have 40% chance to attack back
-    const willFight=t.isCareer||(Math.random()<0.4);
-    if(willFight){
-      // Charge at nearest tribute
-      t.targetPx=nearest.px+(Math.random()-0.5)*20;
-      t.targetPy=nearest.py+(Math.random()-0.5)*20;
-      t.speed=2.0+Math.random()*1.0;
-      t.wanderTimer=15+Math.floor(Math.random()*20);
+  if(nearest&&nearDist<100){
+    const fight=t.isCareer||(Math.random()<0.45);
+    if(fight){
+      t.targetPx=nearest.px+(Math.random()-.5)*16;
+      t.targetPy=nearest.py+(Math.random()-.5)*16;
+      t.speed=1.8+Math.random()*.8;
+      t.wanderTimer=12+Math.floor(Math.random()*18);
     } else {
-      // Flee away
       const ang=Math.atan2(t.py-nearest.py,t.px-nearest.px);
-      const fd=80+Math.random()*60;
+      const fd=70+Math.random()*60;
       t.targetPx=Math.max(TILE,Math.min((COLS-2)*TILE,t.px+Math.cos(ang)*fd));
       t.targetPy=Math.max(TILE,Math.min((ROWS-2)*TILE,t.py+Math.sin(ang)*fd));
-      t.speed=2.2+Math.random()*0.8;
-      t.wanderTimer=20+Math.floor(Math.random()*25);
+      t.speed=2.0+Math.random()*.6;
+      t.wanderTimer=16+Math.floor(Math.random()*20);
     }
     return;
   }
 
-  // Wander — shorter timer for more activity
-  const range=t.isCareer?7:12;
-  const wTile=map[M(Math.round(t.py/TILE),Math.round(t.px/TILE))];
-  let nc,nr,attempts=0;
+  // Wander — short timers, constant movement
+  let nc,nr,tries=0;
+  const range=t.isCareer?6:10;
   do{
     nc=Math.max(2,Math.min(COLS-3,Math.round(t.px/TILE)+(Math.random()*range*2-range)));
     nr=Math.max(2,Math.min(ROWS-3,Math.round(t.py/TILE)+(Math.random()*range*2-range)));
-    attempts++;
-  } while((map[M(nr,nc)]===T.OCEAN||map[M(nr,nc)]===T.WATER||map[M(nr,nc)]===T.MOUNTAIN)&&attempts<8);
+    tries++;
+  }while((map[M(Math.round(nr),Math.round(nc))]===T.OCEAN||map[M(Math.round(nr),Math.round(nc))]===T.MOUNTAIN||map[M(Math.round(nr),Math.round(nc))]===T.WATER)&&tries<10);
   t.targetPx=nc*TILE; t.targetPy=nr*TILE;
-  t.speed=0.8+Math.random()*0.8;
-  // Short wander timers = constantly moving
-  t.wanderTimer=30+Math.floor(Math.random()*60);
+  t.speed=0.8+Math.random()*.8;
+  t.wanderTimer=25+Math.floor(Math.random()*45);
 }
 
 function moveT(t){
-  if(!t.alive||t.phase==='waiting'||t.phase==='dead')return;
-  const dx=t.targetPx-t.px,dy=t.targetPy-t.py;
-  const dist=Math.sqrt(dx*dx+dy*dy);
-  if(dist<1.5)return;
-  t.px+=dx/dist*t.speed;
-  t.py+=dy/dist*t.speed;
+  if(!t.alive||t.phase==='waiting'||t.phase==='dead') return;
+  const dx=t.targetPx-t.px,dy=t.targetPy-t.py,dist=Math.sqrt(dx*dx+dy*dy);
+  if(dist<1.5) return;
+  t.px+=dx/dist*t.speed; t.py+=dy/dist*t.speed;
   t.angle=Math.atan2(dy,dx);
 }
 
 // ── DRAW ARROW ───────────────────────────────────────────────
 function drawArrow(t){
-  const px=Math.floor(t.px+TILE/2);
-  const py=Math.floor(t.py+TILE/2);
+  const px=Math.floor(t.px+TILE/2), py=Math.floor(t.py+TILE/2);
   const color=DC[t.district];
-  const isWaiting=t.phase==='waiting';
-  const size=isWaiting?8:10;
+  const waiting=t.phase==='waiting';
+  const sz=waiting?7:10;
 
   if(!t.alive){
     if(t.deathAlpha>0){
-      t.deathAlpha=Math.max(0,t.deathAlpha-0.012);
-      ctx.save();
-      ctx.globalAlpha=t.deathAlpha;
-      ctx.strokeStyle='#8B1A1A';
-      ctx.lineWidth=2;
+      t.deathAlpha=Math.max(0,t.deathAlpha-.01);
+      ctx.save(); ctx.globalAlpha=t.deathAlpha;
+      ctx.strokeStyle='#8B1A1A'; ctx.lineWidth=2;
       ctx.beginPath();
-      ctx.moveTo(px-7,py-7);ctx.lineTo(px+7,py+7);
-      ctx.moveTo(px+7,py-7);ctx.lineTo(px-7,py+7);
-      ctx.stroke();
-      ctx.restore();
+      ctx.moveTo(px-6,py-6);ctx.lineTo(px+6,py+6);
+      ctx.moveTo(px+6,py-6);ctx.lineTo(px-6,py+6);
+      ctx.stroke(); ctx.restore();
     }
     return;
   }
 
   ctx.save();
   ctx.translate(px,py);
-  ctx.rotate(t.angle+Math.PI/2);
-
-  // Glow
+  ctx.rotate(t.angle + Math.PI/2);
   ctx.shadowColor=color;
-  ctx.shadowBlur=t.id===selectedId?16:(isWaiting?5:8);
+  ctx.shadowBlur=t.id===selectedId?18:(waiting?4:9);
 
-  // Outer arrow body
+  // Arrow body (pointer cursor shape)
   ctx.beginPath();
-  ctx.moveTo(0,-size);
-  ctx.lineTo(size*0.75,size*0.65);
-  ctx.lineTo(size*0.25,size*0.3);
-  ctx.lineTo(size*0.25,size*1.1);
-  ctx.lineTo(-size*0.25,size*1.1);
-  ctx.lineTo(-size*0.25,size*0.3);
-  ctx.lineTo(-size*0.75,size*0.65);
+  ctx.moveTo(0,-sz);
+  ctx.lineTo(sz*.75, sz*.65);
+  ctx.lineTo(sz*.25, sz*.3);
+  ctx.lineTo(sz*.25, sz*1.05);
+  ctx.lineTo(-sz*.25,sz*1.05);
+  ctx.lineTo(-sz*.25,sz*.3);
+  ctx.lineTo(-sz*.75,sz*.65);
   ctx.closePath();
 
-  ctx.globalAlpha=isWaiting?0.55:0.92;
-  ctx.fillStyle=color;
-  ctx.fill();
+  ctx.globalAlpha=waiting?0.5:0.92;
+  ctx.fillStyle=color; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.65)'; ctx.lineWidth=0.7; ctx.stroke();
 
-  // Dark border
-  ctx.strokeStyle='rgba(0,0,0,0.7)';
-  ctx.lineWidth=0.8;
-  ctx.stroke();
-
-  // Inner highlight
+  // Highlight
   ctx.beginPath();
-  ctx.moveTo(0,-size*0.7);
-  ctx.lineTo(size*0.4,size*0.3);
-  ctx.lineTo(0,size*0.1);
-  ctx.lineTo(-size*0.4,size*0.3);
+  ctx.moveTo(0,-sz*.7); ctx.lineTo(sz*.38,sz*.28); ctx.lineTo(0,sz*.08); ctx.lineTo(-sz*.38,sz*.28);
   ctx.closePath();
-  ctx.fillStyle='rgba(255,255,255,0.18)';
-  ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.16)'; ctx.fill();
 
-  ctx.shadowBlur=0;
-  ctx.restore();
+  ctx.shadowBlur=0; ctx.restore();
 
-  // District tag
-  ctx.save();
-  ctx.globalAlpha=isWaiting?0.4:0.75;
-  ctx.fillStyle='rgba(0,0,0,0.75)';
-  const tagW=t.short.length*4+4;
-  ctx.fillRect(px-tagW/2,py+size+3,tagW,7);
-  ctx.fillStyle=color;
-  ctx.font='bold 5px monospace';
-  ctx.textAlign='center';
-  ctx.fillText(t.short,px,py+size+9);
-  ctx.restore();
+  // Name tag
+  if(!waiting){
+    ctx.save();
+    ctx.globalAlpha=0.72;
+    ctx.fillStyle='rgba(0,0,0,0.72)';
+    const tw=t.short.length*4+4;
+    ctx.fillRect(px-tw/2,py+sz+3,tw,7);
+    ctx.fillStyle=color;
+    ctx.font='bold 5px monospace';
+    ctx.textAlign='center';
+    ctx.fillText(t.short,px,py+sz+9);
+    ctx.restore();
+  }
 
   // Selection ring
   if(t.id===selectedId){
-    ctx.save();
-    ctx.strokeStyle='#ffffff';
-    ctx.lineWidth=1.5;
+    ctx.save(); ctx.strokeStyle='#fff'; ctx.lineWidth=1.5;
     ctx.setLineDash([3,3]);
-    ctx.beginPath();
-    ctx.arc(px,py,size+4,0,Math.PI*2);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
+    ctx.beginPath(); ctx.arc(px,py,sz+5,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
   }
 }
 
-// ── ANIMATED MAP ELEMENTS ────────────────────────────────────
+// ── ANIMATED TILES ───────────────────────────────────────────
 function drawAnimated(){
-  const now=Date.now();
-  const wave=Math.floor(now/500);
+  const now=Date.now(), wave=Math.floor(now/500);
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     const type=map[M(r,c)];
+    if(type!==T.WATER&&type!==T.SHALLOW&&type!==T.OCEAN&&type!==T.CORN&&type!==T.ROAD&&type!==T.POND) continue;
     const x=c*TILE,y=r*TILE;
     if(type===T.WATER||type===T.SHALLOW||type===T.POND){
-      ctx.fillStyle='rgba(10,30,60,0.4)';
+      ctx.fillStyle='rgba(10,30,60,0.38)';
       ctx.fillRect(x,y+((wave+c)%4)*3,TILE,1);
-      if(type===T.SHALLOW){
-        ctx.fillStyle='rgba(255,255,255,0.03)';
-        ctx.fillRect(x,y+((wave+c+2)%4)*3,TILE,1);
-      }
     } else if(type===T.OCEAN){
-      ctx.fillStyle='rgba(6,14,28,0.6)';
+      ctx.fillStyle='rgba(6,14,28,0.55)';
       ctx.fillRect(x,y+((wave+c)%3)*4,TILE,2);
-      // Threat shimmer (sharks)
-      if(Math.sin(now/2000+r*0.1+c*0.07)>0.94){
-        ctx.fillStyle='rgba(139,26,26,0.15)';
-        ctx.fillRect(x,y,TILE,TILE);
+      if(Math.sin(now/2000+r*.1+c*.07)>0.94){
+        ctx.fillStyle='rgba(139,26,26,0.13)'; ctx.fillRect(x,y,TILE,TILE);
       }
-    } else if(type===T.CORNUCOPIA){
-      const shim=Math.sin(now/400+r*0.5+c*0.5)*0.12+0.08;
-      ctx.fillStyle=`rgba(201,168,76,${shim})`;
-      ctx.fillRect(x,y,TILE,TILE);
-    } else if(type===T.ROAD){
-      // Road centre dash animation
-      const dashOffset=Math.floor(now/200)%2;
-      if((r+dashOffset)%3===0){
-        ctx.fillStyle='rgba(201,168,76,0.07)';
-        ctx.fillRect(x+4,y,4,TILE);
-      }
+    } else if(type===T.CORN){
+      const s=Math.sin(now/400+r*.5+c*.5)*.1+.07;
+      ctx.fillStyle=`rgba(201,168,76,${s})`; ctx.fillRect(x,y,TILE,TILE);
     }
   }
 
-  // Platform halos when waiting
-  if(!gameStarted){
-    const pulse=Math.sin(now/500)*0.1+0.15;
-    PLATFORMS.forEach(p=>{
-      const x=p.c*TILE+TILE/2,y=p.r*TILE+TILE/2;
-      ctx.fillStyle=`rgba(201,168,76,${pulse})`;
-      ctx.beginPath();ctx.arc(x,y,TILE,0,Math.PI*2);ctx.fill();
+  // Platform pulse when waiting
+  if(!window.gameStarted){
+    const p=Math.sin(now/500)*.1+.14;
+    PLATS.forEach(pl=>{
+      ctx.fillStyle=`rgba(201,168,76,${p})`;
+      ctx.beginPath(); ctx.arc(pl.c*TILE+TILE/2,pl.r*TILE+TILE/2,TILE*.9,0,Math.PI*2); ctx.fill();
     });
   }
 }
 
-// ── DAY / NIGHT CYCLE ────────────────────────────────────────
-let gameTime=480; // minutes since midnight (480=8am)
-let autoTime=false;
-let canvasFlash=0;
-
-const slider=document.getElementById('timeSlider');
-const timeDisp=document.getElementById('timeDisp');
-
-slider.addEventListener('input',()=>{
-  gameTime=parseInt(slider.value);
-  updateTimeDisplay();
+// ── DAY/NIGHT ────────────────────────────────────────────────
+let gameTime=480, autoTime=false;
+document.getElementById('timeSlider').addEventListener('input',e=>{
+  gameTime=parseInt(e.target.value); updateTimeDsp();
 });
-
-function updateTimeDisplay(){
-  const h=Math.floor(gameTime/60)%24;
-  const m=Math.floor(gameTime%60);
-  timeDisp.textContent=(h<10?'0':'')+h+':'+(m<10?'0':'')+m;
-  slider.value=gameTime;
-}
-
-window.toggleAutoTime=function(){
+window.toggleAuto=function(){
   autoTime=!autoTime;
-  document.getElementById('autoTimeBtn').textContent=autoTime?'AUTO ⏸':'AUTO ▶';
+  document.getElementById('autoBtn').textContent=autoTime?'AUTO ⏸':'AUTO ▶';
 };
-
-function getDayOverlay(){
-  // Returns {color,alpha} for time-of-day overlay
-  const t=gameTime%1440;
-  // 0=midnight 360=6am 480=8am 720=noon 1080=6pm 1200=8pm 1440=midnight
-  if(t<60)   return{color:'#000010',alpha:0.75};        // deep night
-  if(t<360)  return{color:'#000518',alpha:0.7-t/1440*0.3}; // pre-dawn
-  if(t<420)  return{color:'#1a0a00',alpha:0.4};         // dawn orange
-  if(t<480)  return{color:'#2a1500',alpha:0.2};         // early morning
-  if(t<720)  return{color:'#000000',alpha:0.0};         // full day = no overlay
-  if(t<900)  return{color:'#000000',alpha:0.0};         // afternoon
-  if(t<1020) return{color:'#1a0800',alpha:0.2};         // golden hour
-  if(t<1080) return{color:'#0a0400',alpha:0.4};         // dusk
-  if(t<1200) return{color:'#000208',alpha:0.6};         // evening
-  return{color:'#000010',alpha:0.75};                   // night
+function updateTimeDsp(){
+  const h=Math.floor(gameTime/60)%24,m=gameTime%60;
+  document.getElementById('timeDisp').textContent=(h<10?'0':'')+h+':'+(m<10?'0':'')+m;
+  document.getElementById('timeSlider').value=gameTime;
 }
 
 function drawDayNight(){
-  const ov=getDayOverlay();
-  if(ov.alpha<=0) return;
-  ctx.save();
-  ctx.globalAlpha=ov.alpha;
-  ctx.fillStyle=ov.color;
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.restore();
-  // Stars at night
-  if(ov.alpha>0.4){
+  const t=gameTime%1440;
+  let col='#000010',al=0;
+  if(t<60) al=0.75;
+  else if(t<360) al=0.6-t/1400*.4;
+  else if(t<420){col='#1a0800';al=0.35;}
+  else if(t<480){col='#120500';al=0.15;}
+  else if(t<780) al=0;
+  else if(t<1020){col='#1a0800';al=(t-780)/240*.35;}
+  else if(t<1080){col='#0a0300';al=0.45;}
+  else{col='#000010';al=Math.min(0.78,(t-1080)/360*.78);}
+  if(al>0){
+    ctx.save(); ctx.globalAlpha=al; ctx.fillStyle=col; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.restore();
+  }
+  if(al>0.4){
     ctx.save();
-    ctx.globalAlpha=(ov.alpha-0.4)*2*0.8;
     ctx.fillStyle='#ffffff';
-    for(let i=0;i<80;i++){
-      const sx=(Math.sin(i*137.5)*0.5+0.5)*canvas.width;
-      const sy=(Math.cos(i*113.1)*0.5+0.5)*canvas.height;
-      const blink=Math.sin(Date.now()/1000+i)*0.5+0.5;
-      ctx.globalAlpha=(ov.alpha-0.4)*1.5*blink*0.6;
+    for(let i=0;i<70;i++){
+      const sx=(Math.sin(i*137.5)*.5+.5)*canvas.width;
+      const sy=(Math.cos(i*113.1)*.5+.5)*canvas.height*.6;
+      ctx.globalAlpha=(al-.4)*1.4*(.5+.5*Math.sin(Date.now()/900+i))*.7;
       ctx.fillRect(Math.floor(sx),Math.floor(sy),2,2);
     }
     ctx.restore();
   }
 }
-
-// ── CANNON FLASH ────────────────────────────────────────────
-function drawCannonFlash(){
-  if(canvasFlash<=0)return;
-  ctx.save();
-  ctx.globalAlpha=canvasFlash/30*0.4;
-  ctx.fillStyle='#8B1A1A';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.restore();
-  // Red border
-  ctx.save();
-  ctx.strokeStyle='#CC2222';
-  ctx.lineWidth=8;
-  ctx.globalAlpha=canvasFlash/30;
-  ctx.strokeRect(0,0,canvas.width,canvas.height);
-  ctx.restore();
-  canvasFlash--;
-}
-
-// ── LEGEND ──────────────────────────────────────────────────
-function buildLegend(){
-  const list=document.getElementById('legList');
-  list.innerHTML='';
-  tributes.forEach(t=>{
-    const item=document.createElement('div');
-    item.className='leg-item'+(t.alive?'':' dead')+(t.id===selectedId?' selected':'');
-    item.id='leg-'+t.id;
-    const svg=`<svg class="leg-arrow" width="10" height="12" viewBox="-10 -12 20 26" style="flex-shrink:0">
-      <path d="M0,-10 L7.5,6.5 L2.5,3 L2.5,11 L-2.5,11 L-2.5,3 L-7.5,6.5 Z"
-        fill="${t.alive?DC[t.district]:'#333'}" opacity="${t.alive?0.9:0.3}"/>
-    </svg>`;
-    item.innerHTML=`${svg}<span>D${t.district} ${t.short}</span>`;
-    item.onclick=()=>selectTribute(t.id);
-    list.appendChild(item);
-  });
-}
-buildLegend();
 
 // ── SELECTION ────────────────────────────────────────────────
 let selectedId=null;
@@ -858,83 +527,142 @@ let selectedId=null;
 function selectTribute(id){
   selectedId=id;
   const t=tributes.find(x=>x.id===id);
-  document.getElementById('arenaStatusMsg').textContent=
-    t?`Selected: ${t.name} (D${t.district}) — click map to move`:'Click a tribute to select';
-  // Update legend highlight
+  document.getElementById('arenaMsg').textContent=t?`Selected: ${t.short} (D${t.district}) — click map to move`:'';
   document.querySelectorAll('.leg-item').forEach(el=>el.classList.remove('selected'));
-  const legEl=document.getElementById('leg-'+id);
-  if(legEl) legEl.classList.add('selected');
+  const el=document.getElementById('leg-'+id);
+  if(el){el.classList.add('selected');el.scrollIntoView({block:'nearest'});}
 }
 
-// ── CANVAS CLICK (select arrow OR move selected) ─────────────
-canvas.addEventListener('click',async(e)=>{
+canvas.addEventListener('click', async(e)=>{
   const rect=canvas.getBoundingClientRect();
-  const scaleX=canvas.width/rect.width;
-  const scaleY=canvas.height/rect.height;
-  const mx=(e.clientX-rect.left)*scaleX;
-  const my=(e.clientY-rect.top)*scaleY;
-
-  // Check if clicking on a tribute arrow (within 18px radius)
+  const mx=(e.clientX-rect.left)*(canvas.width/rect.width);
+  const my=(e.clientY-rect.top)*(canvas.height/rect.height);
   const HIT=18;
-  let clicked=null;
-  let minDist=9999;
+  let hit=null,hd=9999;
   tributes.forEach(t=>{
     if(!t.alive)return;
-    const dx=mx-(t.px+TILE/2), dy=my-(t.py+TILE/2);
-    const d=Math.sqrt(dx*dx+dy*dy);
-    if(d<HIT&&d<minDist){minDist=d;clicked=t;}
+    const dx=mx-(t.px+TILE/2),dy=my-(t.py+TILE/2),d=Math.sqrt(dx*dx+dy*dy);
+    if(d<HIT&&d<hd){hd=d;hit=t;}
   });
-
-  if(clicked){
-    selectTribute(clicked.id);
-    return;
-  }
-
-  // Otherwise move selected tribute to clicked point
-  if(!selectedId){ document.getElementById('arenaStatusMsg').textContent='Click an arrow to select first'; return; }
-  const tileC=Math.max(1,Math.min(COLS-2,Math.floor(mx/TILE)));
-  const tileR=Math.max(1,Math.min(ROWS-2,Math.floor(my/TILE)));
-  const tile=map[M(tileR,tileC)];
-  if(tile===T.OCEAN||tile===T.MOUNTAIN){
-    document.getElementById('arenaStatusMsg').textContent='Cannot move there — invalid terrain';
-    return;
-  }
+  if(hit){selectTribute(hit.id);return;}
+  if(!selectedId){document.getElementById('arenaMsg').textContent='Click a tribute arrow to select first';return;}
+  const tc=Math.max(1,Math.min(COLS-2,Math.floor(mx/TILE)));
+  const tr=Math.max(1,Math.min(ROWS-2,Math.floor(my/TILE)));
+  const tile=map[M(tr,tc)];
+  if(tile===T.OCEAN||tile===T.MOUNTAIN){document.getElementById('arenaMsg').textContent='Invalid terrain';return;}
   const t=tributes.find(x=>x.id===selectedId);
   if(!t)return;
-  t.targetPx=tileC*TILE; t.targetPy=tileR*TILE;
-  t.phase='wandering'; t.wanderTimer=5; t.speed=2.0;
-  // Push to Firebase so other views update
-  await update(ref(db,`arenaPositions/${selectedId}`),{targetPx:tileC*TILE,targetPy:tileR*TILE});
-  document.getElementById('arenaStatusMsg').textContent=`Moving ${t.short} → (${tileC},${tileR})`;
+  t.targetPx=tc*TILE; t.targetPy=tr*TILE; t.phase='wandering'; t.wanderTimer=5; t.speed=2.2;
+  document.getElementById('arenaMsg').textContent=`Moving ${t.short} → map position (${tc},${tr})`;
+  // Push to Firebase if connected
+  if(window._fbUpdate) window._fbUpdate(`arenaPositions/${selectedId}`,{targetPx:tc*TILE,targetPy:tr*TILE});
 });
 
-// ── MAIN LOOP ────────────────────────────────────────────────
+// ── LEGEND ───────────────────────────────────────────────────
+function buildLegend(){
+  const list=document.getElementById('legList');
+  list.innerHTML='';
+  tributes.forEach(t=>{
+    const item=document.createElement('div');
+    item.className='leg-item'+(t.alive?'':' dead')+(t.id===selectedId?' selected':'');
+    item.id='leg-'+t.id;
+    const svg=`<svg width="10" height="12" viewBox="-10 -12 20 26" style="flex-shrink:0">
+      <path d="M0,-10 L7.5,6.5 L2.5,3 L2.5,11 L-2.5,11 L-2.5,3 L-7.5,6.5 Z" fill="${t.alive?DC[t.district]:'#333'}" opacity="${t.alive?0.9:0.3}"/>
+    </svg>`;
+    item.innerHTML=svg+`<span>D${t.district} ${t.short}</span>`;
+    item.onclick=()=>selectTribute(t.id);
+    list.appendChild(item);
+  });
+}
+buildLegend();
+
+// ── CANNON FLASH ─────────────────────────────────────────────
+let cannonFlash=0;
+window._triggerCannon=function(){cannonFlash=35;};
+
+// ── MAIN LOOP ─────────────────────────────────────────────────
 function loop(){
-  // Auto-advance time
-  if(autoTime){ gameTime=(gameTime+0.5)%1440; updateTimeDisplay(); }
-
-  // Draw base map (from baked offscreen)
-  ctx.drawImage(offscreen,0,0);
+  if(autoTime){gameTime=(gameTime+.4)%1440;updateTimeDsp();}
+  ctx.drawImage(off,0,0);
   drawAnimated();
-  // Day/night overlay
   drawDayNight();
-  // Update and draw tributes
-  tributes.forEach(t=>{ updateAI(t); moveT(t); });
+  tributes.forEach(t=>{updateAI(t);moveT(t);});
   [...tributes].sort((a,b)=>a.py-b.py).forEach(t=>drawArrow(t));
-  // Cannon flash
-  drawCannonFlash();
-
+  if(cannonFlash>0){
+    ctx.save();ctx.globalAlpha=cannonFlash/35*.4;ctx.fillStyle='#8B1A1A';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.globalAlpha=cannonFlash/35;ctx.strokeStyle='#CC2222';ctx.lineWidth=10;ctx.strokeRect(0,0,canvas.width,canvas.height);
+    ctx.restore();cannonFlash--;
+  }
   requestAnimationFrame(loop);
 }
-requestAnimationFrame(loop);
 
-// ── FULLSCREEN ───────────────────────────────────────────────
+updateTimeDsp();
+document.getElementById('arenaMsg').textContent='Arena loaded. Waiting for Firebase...';
+loop();
+
 window.toggleFS=function(){
   if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
   else document.exitFullscreen();
 };
+</script>
 
-updateTimeDisplay();
+<!-- FIREBASE: separate module script — attaches to globals after arena is already running -->
+<script type="module">
+import{initializeApp,getApps}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import{getDatabase,ref,onValue,update}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+try{
+  const FB={apiKey:"AIzaSyCZpSWAEivu4NAepXVIY2JyeFoBx6mTayA",authDomain:"hunger-games-uns.firebaseapp.com",databaseURL:"https://hunger-games-uns-default-rtdb.firebaseio.com",projectId:"hunger-games-uns",storageBucket:"hunger-games-uns.firebasestorage.app",messagingSenderId:"833806319484",appId:"1:833806319484:web:39b7af0875360e4d4f6ef9"};
+  const app=getApps().length?getApps()[0]:initializeApp(FB);
+  const db=getDatabase(app);
+
+  // Expose Firebase update function to the main script
+  window._fbUpdate=async(path,data)=>{ await update(ref(db,path),data); };
+
+  onValue(ref(db,'gameState'),snap=>{
+    if(!snap.exists())return;
+    const started=snap.val().started===true;
+    if(started&&!window.gameStarted){window.gameStarted=true;window.triggerStart();}
+  });
+
+  onValue(ref(db,'arenaPositions'),snap=>{
+    if(!snap.exists())return;
+    Object.entries(snap.val()||{}).forEach(([id,d])=>{
+      const t=window.tributes?.find?.(x=>x.id===id);
+      if(t&&d.targetPx!==undefined){t.targetPx=d.targetPx;t.targetPy=d.targetPy;t.phase='wandering';t.wanderTimer=5;}
+    });
+  });
+
+  onValue(ref(db,'tributes'),snap=>{
+    if(!snap.exists())return;
+    Object.entries(snap.val()||{}).forEach(([id,val])=>{
+      const t=window.tributes?.find?.(x=>x.id===id);
+      if(!t)return;
+      if(val.alive===false&&t.alive){t.alive=false;t.phase='dead';}
+      if(val.hp!==undefined)t.hp=val.hp;
+    });
+  });
+
+  onValue(ref(db,'stats'),snap=>{
+    if(!snap.exists())return;
+    const s=snap.val();
+    if(s.alive!==undefined)document.getElementById('sAlive').textContent=s.alive;
+    if(s.dead!==undefined)document.getElementById('sDead').textContent=s.dead;
+    if(s.day!==undefined)document.getElementById('sDay').textContent=s.day;
+  });
+
+  onValue(ref(db,'cannonEvent'),snap=>{
+    if(!snap.exists())return;
+    const ev=snap.val();
+    if(!ev?.ts||Date.now()-ev.ts>10000)return;
+    window._triggerCannon();
+  });
+
+  // Make tributes accessible to Firebase callbacks
+  window.tributes=tributes;
+  document.getElementById('arenaMsg').textContent='Arena live — click an arrow to select';
+}catch(err){
+  document.getElementById('arenaMsg').textContent='Arena running (offline mode)';
+}
 </script>
 </body>
 </html>
