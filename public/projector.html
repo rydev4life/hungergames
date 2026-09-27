@@ -264,23 +264,9 @@ html, body { height: 100%; background: var(--dark-0); color: var(--text-primary)
   filter: grayscale(0.7);
 }
 
-.proj-portrait-wrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 600 / 420;
-  overflow: hidden;
-}
 
-.proj-portrait {
-  width: 100%;
-  height: 100%;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center center;
-  display: block;
-  filter: saturate(0.3) brightness(1.1) hue-rotate(180deg);
-}
+
+
 
 .proj-portrait-wrap::before {
   content: '';
@@ -303,13 +289,12 @@ html, body { height: 100%; background: var(--dark-0); color: var(--text-primary)
   z-index: 2;
 }
 
-@keyframes holoShift {
-  0%   { background-position: 0% 0%; opacity: 0.7; }
+
   50%  { background-position: 100% 100%; opacity: 1; }
   100% { background-position: 0% 0%; opacity: 0.7; }
 }
 
-.proj-tribute-inner { padding: 8px 10px; }
+
 
 .proj-tribute-district {
   font-family: 'Cinzel', serif;
@@ -586,18 +571,12 @@ function renderTributes() {
     const card = document.createElement('div');
     card.className = `proj-tribute-card${t.alive ? '' : ' dead'}`;
     card.innerHTML = `
-      <div class="proj-portrait-wrap">
-        <img class="proj-portrait" src="../tribute-images/${t.id}.jpeg" alt="${t.name}" onerror="this.style.display='none'" />
-        ${!t.alive ? '<div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:3;font-size:24px;color:rgba(192,57,43,0.9);">✕</div>' : ''}
-      </div>
-      <div class="proj-tribute-inner">
-        <div class="proj-tribute-district">${t.district}</div>
-        <div class="proj-tribute-name">${t.name}</div>
-        <div class="proj-tribute-status">${t.alive
-          ? (t.status || 'Location unknown')
-          : '<span style="color:var(--danger-text);font-style:italic">⚰ Fallen</span>'}</div>
-        <div class="proj-hp-bar"><div class="proj-hp-fill ${hpClass}" style="width:${hp}%"></div></div>
-      </div>`;
+      <div class="proj-tribute-district">${t.district}</div>
+      <div class="proj-tribute-name">${t.name}</div>
+      <div class="proj-tribute-status">${t.alive
+        ? (t.status || 'Location unknown')
+        : '<span style="color:var(--danger-text);font-style:italic">⚰ Fallen</span>'}</div>
+      <div class="proj-hp-bar"><div class="proj-hp-fill ${hpClass}" style="width:${hp}%"></div></div>`;
     grid.appendChild(card);
   });
 }
@@ -631,13 +610,8 @@ onValue(ref(db, 'cannonEvent'), snap => {
 
   const list = document.getElementById('cnTributeList');
   if (list) {
-    const tObj = tributeState.find(t => t.name === ev.tributeName);
-    const pid = tObj ? tObj.id : null;
     list.innerHTML = ev.tributeName
-      ? `${pid ? `<div style="width:100px;height:130px;margin:0 auto 14px;border-radius:3px;overflow:hidden;border:1px solid rgba(192,57,43,0.5);position:relative;">
-          <img src="../tribute-images/${pid}.jpeg" style="width:100%;height:100%;object-fit:cover;object-position:top;filter:saturate(0.2) brightness(0.8);" onerror="this.parentElement.style.display='none'" />
-        </div>` : ''}
-        <div class="cn-tribute">${ev.tributeName}<span>${ev.tributeDistrict||''}</span></div>`
+      ? `<div class="cn-tribute">${ev.tributeName}<span>${ev.tributeDistrict||''}</span></div>`
       : `<div class="cn-tribute">A tribute has fallen<span>See the live feed</span></div>`;
   }
   document.getElementById('cannonOverlay').classList.add('visible');

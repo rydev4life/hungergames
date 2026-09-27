@@ -177,6 +177,20 @@
   </div>
 
 </div>
+
+<!-- ARENA CONTROL PANEL -->
+<div style="background:var(--dark-1);border-top:2px solid rgba(201,168,76,0.3);padding:10px 16px;flex-shrink:0;">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+    <div class="pane-title"><i class="ti ti-map"></i> ARENA CONTROL</div>
+    <span style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);letter-spacing:1px;">Click a tribute → click the minimap to move them</span>
+    <select id="arenaSelectTribute" class="aselect" style="width:auto;font-size:11px;padding:3px 8px;margin-left:auto;">
+      <option value="">Select tribute...</option>
+    </select>
+    <a href="arena.html" target="_blank" class="abtn gold" style="padding:4px 12px;font-size:8px;text-decoration:none;"><i class="ti ti-external-link"></i> OPEN ARENA</a>
+  </div>
+  <canvas id="minimapCanvas" width="400" height="400" style="border:1px solid rgba(201,168,76,0.3);cursor:crosshair;image-rendering:pixelated;height:120px;width:120px;"></canvas>
+  <span style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);margin-left:12px;vertical-align:top;display:inline-block;margin-top:8px;">Selected: <span id="arenaSelectedName" style="color:var(--gold);">none</span></span>
+</div>
 </div>
 
 <script type="module">
@@ -223,6 +237,93 @@ window.doLogout = function() {
   sessionStorage.removeItem('staff_auth');
   window.location.href = '../index.html';
 };
+
+// ── ARENA MINIMAP CONTROL ─────────────────────────────────────
+const COLS = 40, ROWS = 40;
+const minimapCanvas = document.getElementById('minimapCanvas');
+const mctx = minimapCanvas.getContext('2d');
+minimapCanvas.width = COLS;
+minimapCanvas.height = ROWS;
+
+const DISTRICT_COLORS = {
+  1:'#FFD700',2:'#FF4444',3:'#00AAFF',4:'#00DDAA',
+  5:'#FF8800',6:'#AA44FF',7:'#44BB44',8:'#FF44AA',
+  9:'#BBBB00',10:'#FF6644',11:'#44FFAA',12:'#AAAAAA'
+};
+
+const TRIBUTE_LIST = [
+  {id:'t01',short:'Valeria',district:1},{id:'t02',short:'Velouro',district:1},
+  {id:'t03',short:'Brontes',district:2},{id:'t04',short:'Kiyra',district:2},
+  {id:'t05',short:'Synrik',district:3},{id:'t06',short:'Elena',district:3},
+  {id:'t07',short:'Corven',district:4},{id:'t08',short:'Tori',district:4},
+  {id:'t09',short:'Volti',district:5},{id:'t10',short:'Lyra',district:5},
+  {id:'t11',short:'Axel',district:6},{id:'t12',short:'Veesuvi',district:6},
+  {id:'t13',short:'Plutonus',district:7},{id:'t14',short:'Mebanis',district:7},
+  {id:'t15',short:'Odinsos',district:8},{id:'t16',short:'Lamina',district:8},
+  {id:'t17',short:'Anaya',district:9},{id:'t18',short:'Claude',district:9},
+  {id:'t19',short:'Marvin',district:10},{id:'t20',short:'Vanderwall',district:10},
+  {id:'t21',short:'Coryo',district:11},{id:'t22',short:'Sisou',district:11},
+  {id:'t23',short:'Cecelia',district:12},{id:'t24',short:'Mauve',district:12},
+];
+
+// Populate dropdown
+const arenaSelect = document.getElementById('arenaSelectTribute');
+TRIBUTE_LIST.forEach(t => {
+  const opt = document.createElement('option');
+  opt.value = t.id;
+  opt.textContent = `${t.short} (D${t.district})`;
+  arenaSelect.appendChild(opt);
+});
+
+let arenaPositions = {};
+let selectedTribute = null;
+
+onValue(ref(db, 'arenaPositions'), snap => {
+  if (snap.exists()) arenaPositions = snap.val() || {};
+  drawMinimap();
+});
+
+arenaSelect.addEventListener('change', () => {
+  selectedTribute = arenaSelect.value || null;
+  document.getElementById('arenaSelectedName').textContent = selectedTribute
+    ? TRIBUTE_LIST.find(t => t.id === selectedTribute)?.short || 'none'
+    : 'none';
+  drawMinimap();
+});
+
+minimapCanvas.addEventListener('click', async (e) => {
+  if (!selectedTribute) { showToast('Select a tribute first.', 'danger'); return; }
+  const rect = minimapCanvas.getBoundingClientRect();
+  const scaleX = COLS / rect.width;
+  const scaleY = ROWS / rect.height;
+  const tileX = Math.floor((e.clientX - rect.left) * scaleX);
+  const tileY = Math.floor((e.clientY - rect.top) * scaleY);
+  await update(ref(db, `arenaPositions/${selectedTribute}`), {
+    targetX: tileX * 16,
+    targetY: tileY * 16,
+  });
+  showToast(`Moved ${TRIBUTE_LIST.find(t=>t.id===selectedTribute)?.short} to (${tileX},${tileY})`, 'success');
+});
+
+function drawMinimap() {
+  mctx.fillStyle = '#2d5a28';
+  mctx.fillRect(0, 0, COLS, ROWS);
+  // Draw positions
+  TRIBUTE_LIST.forEach(t => {
+    const pos = arenaPositions[t.id];
+    const tx = pos ? Math.floor(pos.targetX / 16) : null;
+    const ty = pos ? Math.floor(pos.targetY / 16) : null;
+    if (tx !== null) {
+      mctx.fillStyle = t.id === selectedTribute ? '#ffffff' : DISTRICT_COLORS[t.district];
+      mctx.fillRect(tx, ty, 2, 2);
+    }
+  });
+  // Cornucopia
+  mctx.fillStyle = '#C9A84C';
+  mctx.fillRect(19, 19, 2, 2);
+}
+
+drawMinimap();
 
 // ── FIREBASE CONNECTION ───────────────────────────────────────
 const statusEl = document.getElementById('firebaseStatus');

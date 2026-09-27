@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arena Tracker — 100th Hunger Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; image-rendering: pixelated; }
+  
+  body {
+    background: #0a0a0a;
+    color: #E8D9B5;
+    font-family: 'Cinzel', serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 20px;
+    background: #0E0E0E;
+    border-bottom: 2px solid #C9A84C;
+    flex-shrink: 0;
+    gap: 16px;
+  }
+
+  .top-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: #C9A84C;
+    letter-spacing: 1px;
+  }
+
+  .top-stats {
+    display: flex;
+    gap: 20px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+  }
+
+  .stat { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .stat-num { font-size: 14px; color: #C9A84C; }
+  .stat-num.dead { color: #FF6B6B; }
+  .stat-num.day { color: #74B9E8; }
+  .stat-label { color: #5A4A30; font-size: 6px; letter-spacing: 1px; }
+
+  .live-dot {
+    width: 8px; height: 8px;
+    background: #FF6B6B;
+    border-radius: 50%;
+    animation: blink 1s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .fullscreen-btn {
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.4);
+    color: #C9A84C;
+    padding: 4px 12px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  .fullscreen-btn:hover { background: rgba(201,168,76,0.2); }
+
+  .arena-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    min-height: 0;
+    position: relative;
+  }
+
+  #arenaCanvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    border: 3px solid #C9A84C;
+    box-shadow: 0 0 40px rgba(201,168,76,0.2), 0 0 80px rgba(0,0,0,0.8);
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  /* District colour legend */
+  .legend {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.85);
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .legend-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: #C9A84C;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 5px;
+    color: #A89060;
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .legend-item.dead { opacity: 0.35; }
+
+  /* Pixel font for canvas overlay text */
+  .pixel-overlay {
+    position: absolute;
+    pointer-events: none;
+    font-family: 'Press Start 2P', monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="live-dot"></div>
+  <div class="top-title">⚔ THE 100TH HUNGER GAMES — LIVE ARENA</div>
+  <div class="top-stats">
+    <div class="stat"><div class="stat-num" id="statAlive">24</div><div class="stat-label">ALIVE</div></div>
+    <div class="stat"><div class="stat-num dead" id="statDead">0</div><div class="stat-label">FALLEN</div></div>
+    <div class="stat"><div class="stat-num day" id="statDay">1</div><div class="stat-label">DAY</div></div>
+  </div>
+  <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ FULLSCREEN</button>
+</div>
+
+<div class="arena-wrap">
+  <canvas id="arenaCanvas"></canvas>
+
+  <!-- District legend -->
+  <div class="legend" id="tributeLegend"></div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCZpSWAEivu4NAepXVIY2JyeFoBx6mTayA",
+  authDomain: "hunger-games-uns.firebaseapp.com",
+  databaseURL: "https://hunger-games-uns-default-rtdb.firebaseio.com",
+  projectId: "hunger-games-uns",
+  storageBucket: "hunger-games-uns.firebasestorage.app",
+  messagingSenderId: "833806319484",
+  appId: "1:833806319484:web:39b7af0875360e4d4f6ef9"
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── CANVAS SETUP ──────────────────────────────────────────────
+const canvas = document.getElementById('arenaCanvas');
+const ctx = canvas.getContext('2d');
+
+// Arena grid: 40x40 tiles, each tile 16px
+const COLS = 40, ROWS = 40, TILE = 16;
+canvas.width = COLS * TILE;
+canvas.height = ROWS * TILE;
+
+// Scale canvas display to fit screen while maintaining aspect ratio
+function resizeCanvas() {
+  const wrap = document.querySelector('.arena-wrap');
+  const maxW = wrap.clientWidth - 160;  // leave room for legend
+  const maxH = wrap.clientHeight - 16;
+  const scale = Math.min(maxW / canvas.width, maxH / canvas.height);
+  canvas.style.width = Math.floor(canvas.width * scale) + 'px';
+  canvas.style.height = Math.floor(canvas.height * scale) + 'px';
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// ── TILE TYPES ────────────────────────────────────────────────
+const T = {
+  GRASS: 0,
+  DARK_GRASS: 1,
+  TREE: 2,
+  WATER: 3,
+  SHALLOW: 4,
+  STONE: 5,
+  DIRT: 6,
+  GOLD: 7,     // Cornucopia
+  SAND: 8,
+  MOUNTAIN: 9,
+};
+
+const TILE_COLORS = {
+  [T.GRASS]:      ['#4a7c45', '#3d6b3a', '#528049'],
+  [T.DARK_GRASS]: ['#2d5a28', '#264d22', '#335e2e'],
+  [T.TREE]:       ['#1a3d18', '#153315', '#1f4a1c'],
+  [T.WATER]:      ['#1a4a8a', '#1a3f7a', '#1e548f'],
+  [T.SHALLOW]:    ['#2a5fa0', '#245590', '#2e67ab'],
+  [T.STONE]:      ['#5a5a5a', '#4d4d4d', '#636363'],
+  [T.DIRT]:       ['#7a5a3a', '#6d5030', '#826040'],
+  [T.GOLD]:       ['#C9A84C', '#b8922a', '#d4b056'],
+  [T.SAND]:       ['#c8a870', '#b89458', '#d0b07a'],
+  [T.MOUNTAIN]:   ['#3a3a3a', '#2d2d2d', '#424242'],
+};
+
+// ── ARENA MAP GENERATION ─────────────────────────────────────
+const arenaMap = [];
+
+function generateMap() {
+  // Initialize with grass
+  for (let r = 0; r < ROWS; r++) {
+    arenaMap[r] = [];
+    for (let c = 0; c < COLS; c++) {
+      arenaMap[r][c] = T.GRASS;
+    }
+  }
+
+  // Dense forest zones (corners and edges)
+  function addForest(startR, startC, endR, endC, density) {
+    for (let r = startR; r < endR; r++) {
+      for (let c = startC; c < endC; c++) {
+        if (Math.random() < density) {
+          arenaMap[r][c] = T.TREE;
+        } else if (Math.random() < 0.3) {
+          arenaMap[r][c] = T.DARK_GRASS;
+        }
+      }
+    }
+  }
+
+  // Forest in all four quadrants, denser at edges
+  addForest(0, 0, 15, 15, 0.7);
+  addForest(0, 25, 15, 40, 0.7);
+  addForest(25, 0, 40, 15, 0.7);
+  addForest(25, 25, 40, 40, 0.7);
+  addForest(0, 15, 15, 25, 0.4);
+  addForest(25, 15, 40, 25, 0.4);
+  addForest(15, 0, 25, 15, 0.4);
+  addForest(15, 25, 25, 40, 0.4);
+
+  // Lake in bottom-left quadrant
+  for (let r = 26; r < 36; r++) {
+    for (let c = 2; c < 14; c++) {
+      const dr = r - 31, dc = c - 8;
+      if (dr*dr/25 + dc*dc/36 < 1) {
+        arenaMap[r][c] = T.WATER;
+        // Shallow edges
+        if (dr*dr/25 + dc*dc/36 > 0.6) arenaMap[r][c] = T.SHALLOW;
+      }
+    }
+  }
+
+  // Rocky highland in top-right
+  for (let r = 2; r < 14; r++) {
+    for (let c = 27; c < 39; c++) {
+      if (Math.random() < 0.5) arenaMap[r][c] = T.MOUNTAIN;
+      else if (Math.random() < 0.3) arenaMap[r][c] = T.STONE;
+    }
+  }
+
+  // Sandy desert in bottom-right
+  for (let r = 27; r < 39; r++) {
+    for (let c = 27; c < 39; c++) {
+      if (Math.random() < 0.6) arenaMap[r][c] = T.SAND;
+      else arenaMap[r][c] = T.DIRT;
+    }
+  }
+
+  // Clear central area for Cornucopia
+  for (let r = 16; r < 24; r++) {
+    for (let c = 16; c < 24; c++) {
+      arenaMap[r][c] = T.DIRT;
+    }
+  }
+
+  // Dirt paths radiating from cornucopia
+  for (let i = 0; i < 40; i++) {
+    arenaMap[20][i] = i >= 14 && i <= 26 ? T.DIRT : (arenaMap[20][i] === T.TREE ? T.DARK_GRASS : arenaMap[20][i]);
+    arenaMap[i][20] = i >= 14 && i <= 26 ? T.DIRT : (arenaMap[i][20] === T.TREE ? T.DARK_GRASS : arenaMap[i][20]);
+  }
+
+  // Cornucopia centre tiles (gold)
+  arenaMap[19][19] = T.GOLD;
+  arenaMap[19][20] = T.GOLD;
+  arenaMap[20][19] = T.GOLD;
+  arenaMap[20][20] = T.GOLD;
+  arenaMap[18][20] = T.GOLD;
+  arenaMap[20][21] = T.GOLD;
+}
+
+generateMap();
+
+// ── DRAW MAP ─────────────────────────────────────────────────
+function drawMap() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const type = arenaMap[r][c];
+      const colors = TILE_COLORS[type];
+      // Vary shade slightly per tile for texture
+      const shade = (r * 7 + c * 3) % 3;
+      ctx.fillStyle = colors[shade];
+      ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
+
+      // Add pixel detail
+      if (type === T.TREE) {
+        ctx.fillStyle = '#0d2b0b';
+        ctx.fillRect(c * TILE + 2, r * TILE + 2, 4, 4);
+        ctx.fillRect(c * TILE + 10, r * TILE + 8, 3, 3);
+      } else if (type === T.WATER) {
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.fillRect(c * TILE, r * TILE + (Math.floor(Date.now()/800 + c) % 2) * 8, TILE, 2);
+      } else if (type === T.GOLD) {
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(c * TILE + 4, r * TILE + 4, 8, 8);
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(c * TILE + 6, r * TILE + 6, 4, 4);
+      } else if (type === T.STONE || type === T.MOUNTAIN) {
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(c * TILE, r * TILE + TILE - 3, TILE, 3);
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(c * TILE, r * TILE, 2, 2);
+      }
+    }
+  }
+}
+
+// ── DISTRICT COLOURS ──────────────────────────────────────────
+const DISTRICT_COLORS = {
+  1: '#FFD700', 2: '#FF4444', 3: '#00AAFF',
+  4: '#00DDAA', 5: '#FF8800', 6: '#AA44FF',
+  7: '#44BB44', 8: '#FF44AA', 9: '#BBBB00',
+  10: '#FF6644', 11: '#44FFAA', 12: '#AAAAAA'
+};
+
+// ── TRIBUTE DATA ──────────────────────────────────────────────
+const TRIBUTE_DEFAULTS = [
+  {id:'t01',name:'Valeria Apollo',  short:'VALERIA', district:1, x:20, y:18},
+  {id:'t02',name:'Velouro Leo',     short:'VELOURO', district:1, x:20, y:22},
+  {id:'t03',name:'Brontes Ares',    short:'BRONTES', district:2, x:22, y:20},
+  {id:'t04',name:'Kiyra Kain',      short:'KIYRA',   district:2, x:18, y:20},
+  {id:'t05',name:'Synrik Orion',    short:'SYNRIK',  district:3, x:6,  y:6 },
+  {id:'t06',name:'Elena A.',        short:'ELENA',   district:3, x:8,  y:4 },
+  {id:'t07',name:'Corven Tide',     short:'CORVEN',  district:4, x:34, y:6 },
+  {id:'t08',name:'Tori Vegah',      short:'TORI',    district:4, x:36, y:8 },
+  {id:'t09',name:'Volti Helios',    short:'VOLTI',   district:5, x:4,  y:20},
+  {id:'t10',name:'Lyra Solenn',     short:'LYRA',    district:5, x:6,  y:22},
+  {id:'t11',name:'Axel Ode',        short:'AXEL',    district:6, x:34, y:20},
+  {id:'t12',name:'Veesuvi Rain',    short:'VESUVI',  district:6, x:36, y:22},
+  {id:'t13',name:'Plutonus Blu',    short:'PLUTO',   district:7, x:20, y:4 },
+  {id:'t14',name:'Mebanis Cades',   short:'MEBANI',  district:7, x:22, y:6 },
+  {id:'t15',name:'Odinsos H.',      short:'ODINS',   district:8, x:20, y:36},
+  {id:'t16',name:'Lamina Calow',    short:'LAMINA',  district:8, x:22, y:34},
+  {id:'t17',name:'Anaya Trove',     short:'ANAYA',   district:9, x:4,  y:34},
+  {id:'t18',name:'Claude A.',       short:'CLAUDE',  district:9, x:6,  y:36},
+  {id:'t19',name:'Marvin Narlan',   short:'MARVIN',  district:10,x:34, y:34},
+  {id:'t20',name:'Vanderwall M.',   short:'VANDER',  district:10,x:36, y:36},
+  {id:'t21',name:'Coryo Chambers',  short:'CORYO',   district:11,x:10, y:30},
+  {id:'t22',name:'Sisou C.',        short:'SISOU',   district:11,x:12, y:28},
+  {id:'t23',name:'Cecelia Kebih',   short:'CECELI',  district:12,x:30, y:30},
+  {id:'t24',name:'Mauve Plinth',    short:'MAUVE',   district:12,x:28, y:32},
+];
+
+let tributes = TRIBUTE_DEFAULTS.map(t => ({
+  ...t,
+  px: t.x * TILE,    // pixel x
+  py: t.y * TILE,    // pixel y
+  targetX: t.x * TILE,
+  targetY: t.y * TILE,
+  alive: true,
+  hp: 100,
+  frame: 0,
+  frameTimer: 0,
+  dir: 'down',
+  wanderTimer: Math.floor(Math.random() * 180),
+  deathAnim: 0,
+  selected: false,
+}));
+
+// ── FIREBASE SYNC ─────────────────────────────────────────────
+onValue(ref(db, 'arenaPositions'), snap => {
+  if (!snap.exists()) return;
+  const data = snap.val();
+  tributes.forEach(t => {
+    if (data[t.id]) {
+      const d = data[t.id];
+      if (d.targetX !== undefined) t.targetX = d.targetX;
+      if (d.targetY !== undefined) t.targetY = d.targetY;
+    }
+  });
+});
+
+onValue(ref(db, 'tributes'), snap => {
+  if (!snap.exists()) return;
+  const data = snap.val();
+  Object.entries(data).forEach(([key, val]) => {
+    const t = tributes.find(tr => tr.id === key);
+    if (t) {
+      if (val.alive === false && t.alive) {
+        t.alive = false;
+        t.deathAnim = 1;
+      }
+      if (val.hp !== undefined) t.hp = val.hp;
+    }
+  });
+  updateStats();
+});
+
+onValue(ref(db, 'stats'), snap => {
+  if (!snap.exists()) return;
+  const s = snap.val();
+  document.getElementById('statAlive').textContent = s.alive ?? 24;
+  document.getElementById('statDead').textContent = s.dead ?? 0;
+  document.getElementById('statDay').textContent = s.day ?? 1;
+});
+
+function updateStats() {
+  const alive = tributes.filter(t => t.alive).length;
+  document.getElementById('statAlive').textContent = alive;
+  document.getElementById('statDead').textContent = 24 - alive;
+}
+
+// ── WANDER AI ─────────────────────────────────────────────────
+const SPEED = 0.8;
+
+function wanderTribute(t) {
+  if (!t.alive) return;
+  t.wanderTimer--;
+  if (t.wanderTimer <= 0) {
+    // Pick a random nearby destination
+    const range = 4;
+    const tx = Math.max(1, Math.min(COLS-2, Math.floor(t.px/TILE) + Math.floor(Math.random()*range*2) - range));
+    const ty = Math.max(1, Math.min(ROWS-2, Math.floor(t.py/TILE) + Math.floor(Math.random()*range*2) - range));
+    // Don't walk into water or cornucopia
+    if (arenaMap[ty]?.[tx] !== T.WATER && arenaMap[ty]?.[tx] !== T.GOLD) {
+      t.targetX = tx * TILE;
+      t.targetY = ty * TILE;
+    }
+    t.wanderTimer = 120 + Math.floor(Math.random() * 200);
+  }
+}
+
+function moveTribute(t) {
+  if (!t.alive) return;
+  const dx = t.targetX - t.px;
+  const dy = t.targetY - t.py;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  if (dist > 1) {
+    t.px += (dx / dist) * SPEED;
+    t.py += (dy / dist) * SPEED;
+    // Set direction for sprite
+    if (Math.abs(dx) > Math.abs(dy)) {
+      t.dir = dx > 0 ? 'right' : 'left';
+    } else {
+      t.dir = dy > 0 ? 'down' : 'up';
+    }
+    // Walk animation
+    t.frameTimer++;
+    if (t.frameTimer > 12) { t.frame = (t.frame + 1) % 4; t.frameTimer = 0; }
+  }
+}
+
+// ── DRAW TRIBUTE SPRITE ───────────────────────────────────────
+function drawTribute(t) {
+  const x = Math.floor(t.px);
+  const y = Math.floor(t.py);
+  const color = DISTRICT_COLORS[t.district];
+  const isMoving = Math.abs(t.targetX - t.px) > 1 || Math.abs(t.targetY - t.py) > 1;
+
+  if (!t.alive) {
+    if (t.deathAnim > 0) {
+      // Death animation
+      ctx.globalAlpha = t.deathAnim;
+      ctx.fillStyle = '#FF4444';
+      ctx.fillRect(x - 2, y - 2, 12, 12);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '10px monospace';
+      ctx.fillText('✕', x, y + 8);
+      ctx.globalAlpha = 1;
+      t.deathAnim = Math.max(0, t.deathAnim - 0.02);
+    }
+    return;
+  }
+
+  ctx.globalAlpha = 1;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(x + 1, y + 9, 8, 3);
+
+  // Body (8x10 pixel character)
+  const legOffset = isMoving ? (t.frame % 2 === 0 ? 1 : -1) : 0;
+
+  // Legs
+  ctx.fillStyle = '#333';
+  ctx.fillRect(x + 2, y + 7, 2, 3 + legOffset);
+  ctx.fillRect(x + 5, y + 7, 2, 3 - legOffset);
+
+  // Torso
+  ctx.fillStyle = color;
+  ctx.fillRect(x + 1, y + 3, 7, 5);
+
+  // Arms
+  ctx.fillStyle = color;
+  const armSwing = isMoving ? (t.frame % 2 === 0 ? 1 : -1) : 0;
+  ctx.fillRect(x, y + 3 + armSwing, 1, 3);
+  ctx.fillRect(x + 8, y + 3 - armSwing, 1, 3);
+
+  // Head
+  ctx.fillStyle = '#f5c5a0';
+  ctx.fillRect(x + 2, y, 5, 4);
+
+  // Eyes (direction-based)
+  ctx.fillStyle = '#111';
+  if (t.dir === 'down' || t.dir === 'right') ctx.fillRect(x + 3, y + 1, 1, 1);
+  if (t.dir === 'down' || t.dir === 'left') ctx.fillRect(x + 5, y + 1, 1, 1);
+  if (t.dir === 'up') {
+    ctx.fillRect(x + 3, y + 2, 1, 1);
+    ctx.fillRect(x + 5, y + 2, 1, 1);
+  }
+
+  // Selection ring
+  if (t.selected) {
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 2]);
+    ctx.strokeRect(x - 2, y - 2, 12, 14);
+    ctx.setLineDash([]);
+  }
+
+  // District dot above head
+  ctx.fillStyle = color;
+  ctx.fillRect(x + 3, y - 4, 3, 3);
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(x + 3, y - 4, 1, 1);
+
+  // Name label on hover/selection
+  if (t.selected) {
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    const nameW = t.short.length * 4 + 4;
+    ctx.fillRect(x - nameW/2 + 4, y - 14, nameW, 8);
+    ctx.fillStyle = color;
+    ctx.font = '6px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(t.short, x + 4, y - 8);
+    ctx.textAlign = 'left';
+  }
+}
+
+// ── LEGEND ────────────────────────────────────────────────────
+function buildLegend() {
+  const legend = document.getElementById('tributeLegend');
+  legend.innerHTML = '<div class="legend-title">TRIBUTES</div>';
+  for (let d = 1; d <= 12; d++) {
+    const dTributes = tributes.filter(t => t.district === d);
+    const allDead = dTributes.every(t => !t.alive);
+    const item = document.createElement('div');
+    item.className = 'legend-item' + (allDead ? ' dead' : '');
+    item.id = `legend-d${d}`;
+    item.innerHTML = `
+      <div class="legend-dot" style="background:${DISTRICT_COLORS[d]}"></div>
+      D${d}: ${dTributes.map(t => t.short).join(', ')}`;
+    legend.appendChild(item);
+  }
+}
+buildLegend();
+
+// Update legend when tributes die
+function updateLegend() {
+  for (let d = 1; d <= 12; d++) {
+    const dTributes = tributes.filter(t => t.district === d);
+    const allDead = dTributes.every(t => !t.alive);
+    const item = document.getElementById(`legend-d${d}`);
+    if (item) item.className = 'legend-item' + (allDead ? ' dead' : '');
+  }
+}
+
+// ── MAIN GAME LOOP ────────────────────────────────────────────
+let lastTime = 0;
+let waterAnimTimer = 0;
+
+function gameLoop(timestamp) {
+  const dt = timestamp - lastTime;
+  lastTime = timestamp;
+  waterAnimTimer += dt;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawMap();
+
+  tributes.forEach(t => {
+    wanderTribute(t);
+    moveTribute(t);
+    drawTribute(t);
+  });
+
+  updateLegend();
+  requestAnimationFrame(gameLoop);
+}
+
+requestAnimationFrame(gameLoop);
+
+// ── FULLSCREEN ────────────────────────────────────────────────
+window.toggleFullscreen = function() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+};
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('cannonOverlay')?.classList.remove('visible');
+  if (e.key === 'f' || e.key === 'F') window.toggleFullscreen();
+});
+
+// ── CANNON EVENT ──────────────────────────────────────────────
+let lastCannonTs = 0;
+onValue(ref(db, 'cannonEvent'), snap => {
+  if (!snap.exists()) return;
+  const ev = snap.val();
+  if (!ev?.ts || ev.ts <= lastCannonTs) return;
+  if (Date.now() - ev.ts > 10000) { lastCannonTs = ev.ts; return; }
+  lastCannonTs = ev.ts;
+  // Flash red
+  canvas.style.boxShadow = '0 0 60px rgba(255,50,50,0.9), 0 0 120px rgba(139,26,26,0.6)';
+  setTimeout(() => {
+    canvas.style.boxShadow = '0 0 40px rgba(201,168,76,0.2), 0 0 80px rgba(0,0,0,0.8)';
+  }, 1500);
+});
+</script>
+</body>
+</html>

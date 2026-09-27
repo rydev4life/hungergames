@@ -210,18 +210,10 @@ function triggerCannonNotification(tributeName, tributeDistrict) {
   const audio = document.getElementById('cannonAudio');
   if (audio) { audio.currentTime = 0; audio.play().catch(() => {}); }
   const tributeList = document.getElementById('cannonTributeList');
-  if (tributeList && tributeName) {
-    // Find tribute ID for portrait
-    const tributeObj = tributeState.find(t => t.name === tributeName);
-    const portraitId = tributeObj ? tributeObj.id : null;
-    tributeList.innerHTML = `
-      ${portraitId ? `
-        <div class="cannon-portrait-wrap" style="margin:0 auto 14px;">
-          <img class="cannon-portrait" src="tribute-images/${portraitId}.jpeg" alt="${tributeName}" onerror="this.parentElement.style.display='none'" />
-        </div>` : ''}
-      <div class="cannon-notif-tribute">${tributeName}<span>${tributeDistrict || ''}</span></div>`;
-  } else if (tributeList) {
-    tributeList.innerHTML = `<div class="cannon-notif-tribute">A tribute has fallen<span>See the live feed</span></div>`;
+  if (tributeList) {
+    tributeList.innerHTML = tributeName
+      ? `<div class="cannon-notif-tribute">${tributeName}<span>${tributeDistrict || ''}</span></div>`
+      : `<div class="cannon-notif-tribute">A tribute has fallen<span>See the live feed</span></div>`;
   }
   const overlay = document.getElementById('cannonOverlay');
   if (overlay) overlay.classList.add('visible');
@@ -283,20 +275,12 @@ function renderTributes() {
     const isSponsored = t.sponsors && t.sponsors[eliteId];
     const card = document.createElement('div');
     card.className = ['tribute-card', t.alive ? '' : 'dead', isSponsored ? 'sponsored' : ''].join(' ').trim();
-    card.style.padding = '0';
-    card.style.overflow = 'hidden';
     card.innerHTML = `
-      <div class="tribute-portrait-wrap">
-        <img class="tribute-portrait" src="tribute-images/${t.id}.jpeg" alt="${t.name}" onerror="this.style.display='none'" />
-        ${!t.alive ? '<div class="tribute-portrait-dead-overlay"></div>' : ''}
-      </div>
-      <div style="padding:8px 10px;">
-        ${isSponsored ? '<span class="tribute-sponsor-badge ti ti-star"></span>' : ''}
-        <div class="tribute-district-label">${t.district}</div>
-        <div class="tribute-name">${t.name}</div>
-        <div class="tribute-status">${t.alive ? (t.status||'Location unknown') : '<span style="color:var(--danger-text);font-style:italic">⚰ Fallen</span>'}</div>
-        <div class="hp-bar"><div class="hp-fill ${hpClass}" style="width:${hp}%"></div></div>
-      </div>`;
+      ${isSponsored ? '<span class="tribute-sponsor-badge ti ti-star"></span>' : ''}
+      <div class="tribute-district-label">${t.district}</div>
+      <div class="tribute-name">${t.name}</div>
+      <div class="tribute-status">${t.alive ? (t.status||'Location unknown') : '<span style="color:var(--danger-text);font-style:italic">⚰ Fallen</span>'}</div>
+      <div class="hp-bar"><div class="hp-fill ${hpClass}" style="width:${hp}%"></div></div>`;
     grid.appendChild(card);
     const opt = document.createElement('option');
     opt.value = t.id;
