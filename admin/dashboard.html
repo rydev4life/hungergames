@@ -336,6 +336,30 @@
   <!-- COL 4: ONLINE NOW + CREDITS -->
   <div class="col">
 
+    <!-- ARENA TRACKER CONTROL -->
+    <div class="pane flex1" style="min-height:280px;">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-map-pin"></i> ARENA TRACKER</div>
+        <a href="../public/arena.html" target="_blank" class="abtn gold" style="font-size:8px;padding:3px 10px;text-decoration:none;">OPEN ↗</a>
+      </div>
+      <div style="padding:8px 10px;display:flex;gap:10px;height:100%;">
+        <!-- Minimap -->
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+          <canvas id="adminMinimap" width="72" height="72"
+            style="width:180px;height:180px;border:1px solid var(--border);cursor:crosshair;image-rendering:pixelated;display:block;background:#0a0a0a;">
+          </canvas>
+          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);">
+            Click map to move: <span id="adminArenaSelected" style="color:var(--gold);">none selected</span>
+          </div>
+        </div>
+        <!-- Tribute selector grid -->
+        <div style="flex:1;overflow-y:auto;">
+          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;">SELECT TRIBUTE</div>
+          <div id="adminTributeGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- ONLINE NOW -->
     <div class="pane" style="flex:none;min-height:120px;">
       <div class="pane-hdr">

@@ -735,3 +735,104 @@ window.kickDelegate = async function(eliteId) {
   await set(ref(db, `activeSessions/${eliteId}`), null);
   showToast(`${ELITES[eliteId]?.name || eliteId} kicked.`, 'danger');
 };
+
+
+// ── ARENA TRACKER CONTROL ─────────────────────────────────────
+const ARENA_COLS=72,ARENA_ROWS=72,ARENA_TILE=14;
+const ARENA_DC={1:'#FFD700',2:'#CC3333',3:'#3399CC',4:'#2ABEAA',5:'#CC7722',6:'#9944CC',7:'#44AA44',8:'#CC44AA',9:'#AAAA22',10:'#CC5533',11:'#44BBAA',12:'#888888'};
+
+const ARENA_TRIBUTES=[
+  {id:'t01',short:'VALERIA', district:1},{id:'t02',short:'VELOURO', district:1},
+  {id:'t03',short:'BRONTES', district:2},{id:'t04',short:'KIYRA',   district:2},
+  {id:'t05',short:'SYNRIK',  district:3},{id:'t06',short:'ELENA',   district:3},
+  {id:'t07',short:'CORVEN',  district:4},{id:'t08',short:'TORI',    district:4},
+  {id:'t09',short:'VOLTI',   district:5},{id:'t10',short:'LYRA',    district:5},
+  {id:'t11',short:'AXEL',    district:6},{id:'t12',short:'VEESUVI', district:6},
+  {id:'t13',short:'PLUTO',   district:7},{id:'t14',short:'MEBANI',  district:7},
+  {id:'t15',short:'ODINSOS', district:8},{id:'t16',short:'LAMINA',  district:8},
+  {id:'t17',short:'ANAYA',   district:9},{id:'t18',short:'CLAUDE',  district:9},
+  {id:'t19',short:'MARVIN',  district:10},{id:'t20',short:'VANDER', district:10},
+  {id:'t21',short:'CORYO',   district:11},{id:'t22',short:'SISOU',  district:11},
+  {id:'t23',short:'CECELIA', district:12},{id:'t24',short:'MAUVE',  district:12},
+];
+
+let arenaSelectedId=null;
+let arenaPositionsCache={};
+
+// Track positions from Firebase
+onValue(ref(db,'arenaPositions'),snap=>{
+  arenaPositionsCache=snap.exists()?snap.val():{};
+  drawAdminMinimap();
+});
+
+// Build tribute grid buttons
+const adminGrid=document.getElementById('adminTributeGrid');
+if(adminGrid){
+  ARENA_TRIBUTES.forEach(t=>{
+    const btn=document.createElement('button');
+    btn.id='arena-btn-'+t.id;
+    btn.textContent='D'+t.district+' '+t.short;
+    btn.style.cssText=`background:rgba(0,0,0,0.4);border:1px solid ${ARENA_DC[t.district]}33;color:${ARENA_DC[t.district]};font-family:'Cinzel',serif;font-size:7px;padding:4px 3px;cursor:pointer;border-radius:2px;transition:all .15s;`;
+    btn.onclick=()=>{
+      arenaSelectedId=t.id;
+      document.getElementById('adminArenaSelected').textContent=t.short+' (D'+t.district+')';
+      document.querySelectorAll('[id^="arena-btn-"]').forEach(b=>{
+        b.style.background='rgba(0,0,0,0.4)';
+        b.style.borderColor=ARENA_DC[parseInt(b.id.replace('arena-btn-t',''))||1]+'33';
+      });
+      btn.style.background=ARENA_DC[t.district]+'25';
+      btn.style.borderColor=ARENA_DC[t.district];
+    };
+    adminGrid.appendChild(btn);
+  });
+}
+
+// Minimap click to move tribute
+const adminMinimap=document.getElementById('adminMinimap');
+if(adminMinimap){
+  adminMinimap.addEventListener('click',async(e)=>{
+    if(!arenaSelectedId){ showToast('Select a tribute first.','danger'); return; }
+    const rect=adminMinimap.getBoundingClientRect();
+    const scaleX=ARENA_COLS/rect.width;
+    const scaleY=ARENA_ROWS/rect.height;
+    const tileC=Math.max(1,Math.min(ARENA_COLS-2,Math.floor((e.clientX-rect.left)*scaleX)));
+    const tileR=Math.max(1,Math.min(ARENA_ROWS-2,Math.floor((e.clientY-rect.top)*scaleY)));
+    await update(ref(db,`arenaPositions/${arenaSelectedId}`),{
+      targetPx:tileC*ARENA_TILE,
+      targetPy:tileR*ARENA_TILE,
+    });
+    const t=ARENA_TRIBUTES.find(x=>x.id===arenaSelectedId);
+    showToast(`Moved ${t?.short} to (${tileC},${tileR})`,'success');
+  });
+}
+
+function drawAdminMinimap(){
+  const mm=document.getElementById('adminMinimap');
+  if(!mm)return;
+  const mc=mm.getContext('2d');
+  mc.fillStyle='#0a0a0a';
+  mc.fillRect(0,0,ARENA_COLS,ARENA_ROWS);
+  // Centre cornucopia
+  mc.fillStyle='#C9A84C';
+  mc.fillRect(35,35,3,3);
+  // Forest suggestion
+  mc.fillStyle='#0c1e0a';
+  for(let i=0;i<200;i++){
+    const x=Math.floor(Math.random()*ARENA_COLS);
+    const y=Math.floor(Math.random()*ARENA_ROWS);
+    const dr=y-36,dc=x-36;
+    if(dr*dr+dc*dc>180) mc.fillRect(x,y,1,1);
+  }
+  // Tribute positions
+  ARENA_TRIBUTES.forEach(t=>{
+    const pos=arenaPositionsCache[t.id];
+    const px=pos?Math.floor(pos.targetPx/ARENA_TILE):null;
+    const py=pos?Math.floor(pos.targetPy/ARENA_TILE):null;
+    if(px!==null){
+      mc.fillStyle=t.id===arenaSelectedId?'#ffffff':ARENA_DC[t.district];
+      mc.fillRect(px,py,2,2);
+    }
+  });
+}
+
+drawAdminMinimap();
